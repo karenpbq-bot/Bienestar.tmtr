@@ -80,7 +80,12 @@
                                 <td>{{ cita.especialista.nombre }} {{ cita.especialista.apellido }}</td>
                                 <td>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M') }}</td>
                                 <td>
-                                    <span class="badge {% if cita.estado_cita == 'Confirmada' or cita.estado_cita == 'Programada' %}bg-success{% elif cita.estado_cita == 'Cancelada' %}bg-danger{% else %}bg-warning text-dark{% endif %} px-3 py-2 rounded-pill">
+                                    <!-- Reemplaza el bloque del span de estado por este: -->
+                                    <span class="badge 
+                                        {% if cita.estado_cita in ['Confirmada', 'Programada'] %}bg-success
+                                        {% elif cita.estado_cita == 'Cancelada' %}bg-danger
+                                        {% elif cita.estado_cita == 'Cancelada y Reprogramada' %}bg-warning text-dark
+                                        {% else %}bg-warning text-dark{% endif %} px-3 py-2 rounded-pill">
                                         {{ cita.estado_cita }}
                                     </span>
                                 </td>
