@@ -106,8 +106,8 @@ def inject_globals():
 @app.route('/')
 @login_required
 def dashboard():
-    rol = session.get('user_role')
     cliente_id = session.get('id_cliente')
+    rol = session.get('user_role')
     user_id = session.get('user_id')
 
     # Filtrado multi-tenant y por rol
@@ -118,6 +118,19 @@ def dashboard():
         citas = CitaUni.query.order_by(CitaUni.fecha_hora_inicio.asc()).all()
         total_historias = HistoriaClinicaPsi.query.count()
         
+    elif rol == 'Paciente':
+        # Buscamos al paciente vinculado mediante el id_usuario de la sesión y la clínica activa
+        paciente_obj = PacienteUni.query.filter_by(id_cliente=cliente_id, id_usuario=user_id).first()
+        id_real_paciente = paciente_obj.id_paciente if paciente_obj else 0
+        
+        # El paciente solo ve sus propias citas en el dashboard
+        citas = CitaUni.query.filter_by(id_cliente=cliente_id, id_paciente=id_real_paciente).order_by(CitaUni.fecha_hora_inicio.desc()).all()
+        
+        total_pacientes = 1
+        total_usuarios = 1
+        total_especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).count()
+        total_historias = HistoriaClinicaPsi.query.join(PacienteUni).filter(PacienteUni.id_cliente == cliente_id, PacienteUni.id_paciente == id_real_paciente).count()
+
     elif rol == 'Especialista':
         total_pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).count()
         total_usuarios = UsuarioUni.query.filter_by(id_cliente=cliente_id).count()
