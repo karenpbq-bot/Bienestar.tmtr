@@ -284,9 +284,13 @@ def reset_password(id_usuario):
         flash('No cuenta con autorización para realizar esta acción.', 'danger')
         return redirect(url_for('usuarios.gestionar_usuarios'))
 
-    usuario.set_password('Temp2026*')
+    # Generar contraseña temporal de 8 dígitos
+    pass_temporal = ''.join(random.choices(string.digits, k=8))
+    
+    usuario.set_password(pass_temporal)
     db.session.commit()
-    flash(f'Contraseña de {usuario.nombres_apellidos} restablecida a temporal (Temp2026*).', 'success')
+    
+    flash(f'Contraseña de {usuario.nombres_apellidos} restablecida temporalmente. Su clave es: {pass_temporal}', 'success')
     return redirect(url_for('usuarios.gestionar_usuarios'))
 
 @usuarios_bp.route('/usuarios/eliminar/<int:id_usuario>', methods=['POST'])
@@ -320,8 +324,8 @@ def eliminar_usuario(id_usuario):
 def superadmin_reset_password(id_usuario):
     usuario = UsuarioUni.query.get_or_404(id_usuario)
     
-    caracteres = string.ascii_letters + string.digits
-    nueva_clave = ''.join(random.choice(caracteres) for _ in range(9))
+    # Generar contraseña temporal de 8 dígitos
+    nueva_clave = ''.join(random.choices(string.digits, k=8))
     
     usuario.set_password(nueva_clave)
     db.session.commit()
