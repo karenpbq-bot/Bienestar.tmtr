@@ -86,7 +86,7 @@
                         {% if messages %}
                             {% for category, message in messages %}
                                 {% if "cerrado sesión" not in message.lower() %}
-                                    <div class="alert alert-custom rounded-3 mb-4 small p-3 d-flex align-items-center justify-content-between" role="alert">
+                                    <div class="alert alert-{{ category }} rounded-3 mb-4 small p-3 d-flex align-items-center justify-content-between" role="alert">
                                         <div>{{ message }}</div>
                                         <button type="button" class="btn-close ms-2" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.7rem;"></button>
                                     </div>
