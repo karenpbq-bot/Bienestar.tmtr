@@ -86,29 +86,44 @@
                                 </td>
                                 <td>{{ cita.motivo_reserva or '-' }}</td>
                                 <td class="text-end pe-4">
-                                    {% if current_user_role in ['Administrador', 'Especialista'] and cita.estado_cita == 'Programada' %}
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1" data-bs-toggle="modal" data-bs-target="#modalAtenderCita-{{ cita.id_cita }}">
-                                        Atender
-                                    </button>
-                                    {% endif %}
-                                    
-                                    <!-- Selector de Estado -->
-                                    <form action="{{ url_for('agenda.cambiar_estado_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;">
-                                        <select name="estado_cita" class="form-select form-select-sm rounded-pill d-inline-block w-auto" onchange="this.form.submit()">
-                                            <option value="Programada" {% if cita.estado_cita == 'Programada' %}selected{% endif %}>Programada</option>
-                                            <option value="Completada" {% if cita.estado_cita == 'Completada' %}selected{% endif %}>Completada</option>
-                                            <option value="Cancelada" {% if cita.estado_cita == 'Cancelada' %}selected{% endif %}>Cancelada</option>
-                                            <option value="No asistió" {% if cita.estado_cita == 'No asistió' %}selected{% endif %}>No asistió</option>
-                                        </select>
-                                    </form>
-
-                                    <!-- Botón Eliminar Definitivamente (Sólo Admins y Superadmins) -->
-                                    {% if current_user_role in ['Superadmin', 'Administrador'] %}
-                                    <form action="{{ url_for('agenda.eliminar_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('⚠️ ¿Está seguro de eliminar DEFINITIVAMENTE esta cita? Se perderá el registro y no se podrá recuperar. Esta acción NO se puede deshacer.');">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle ms-1" title="Eliminar cita permanentemente">
-                                            <i class="fa-solid fa-trash-can"></i>
+                                    {% if current_user_role == 'Paciente' %}
+                                        <!-- Si es Paciente, solo puede cancelar su cita si está programada -->
+                                        {% if cita.estado_cita == 'Programada' %}
+                                        <form action="{{ url_for('agenda.cambiar_estado_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita?');">
+                                            <input type="hidden" name="estado_cita" value="Cancelada">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                <i class="fa-solid fa-ban me-1"></i> Cancelar Cita
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-muted small fst-italic">Sin acciones disponibles</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <!-- Acciones para personal administrativo y especialistas -->
+                                        {% if current_user_role in ['Administrador', 'Especialista'] and cita.estado_cita == 'Programada' %}
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1" data-bs-toggle="modal" data-bs-target="#modalAtenderCita-{{ cita.id_cita }}">
+                                            Atender
                                         </button>
-                                    </form>
+                                        {% endif %}
+                                        
+                                        <!-- Selector de Estado administrativo -->
+                                        <form action="{{ url_for('agenda.cambiar_estado_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;">
+                                            <select name="estado_cita" class="form-select form-select-sm rounded-pill d-inline-block w-auto" onchange="this.form.submit()">
+                                                <option value="Programada" {% if cita.estado_cita == 'Programada' %}selected{% endif %}>Programada</option>
+                                                <option value="Completada" {% if cita.estado_cita == 'Completada' %}selected{% endif %}>Completada</option>
+                                                <option value="Cancelada" {% if cita.estado_cita == 'Cancelada' %}selected{% endif %}>Cancelada</option>
+                                                <option value="No asistió" {% if cita.estado_cita == 'No asistió' %}selected{% endif %}>No asistió</option>
+                                            </select>
+                                        </form>
+
+                                        <!-- Botón Eliminar Definitivamente (Sólo Admins y Superadmins) -->
+                                        {% if current_user_role in ['Superadmin', 'Administrador'] %}
+                                        <form action="{{ url_for('agenda.eliminar_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('⚠️ ¿Está seguro de eliminar DEFINITIVAMENTE esta cita? Se perderá el registro y no se podrá recuperar. Esta acción NO se puede deshacer.');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle ms-1" title="Eliminar cita permanentemente">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
                                     {% endif %}
                                 </td>
                             </tr>
@@ -210,9 +225,10 @@
                     week: 'Semana',
                     day: 'Día'
                 },
-                selectable: true,
+                selectable: {% if current_user_role == 'Paciente' %}false{% else %}true{% endif %},
                 selectMirror: true,
                 select: function(info) {
+                    {% if current_user_role != 'Paciente' %}
                     var fechaIso = info.startStr.slice(0, 16); 
                     var inputFecha = document.getElementById('inputFechaHora');
                     if (inputFecha) {
@@ -223,6 +239,7 @@
                         var modal = new bootstrap.Modal(modalEl);
                         modal.show();
                     }
+                    {% endif %}
                 },
                 events: [
                     {% for cita in citas %}
