@@ -78,10 +78,18 @@
                                         <span class="badge bg-dark font-monospace">{{ u.codigo_7d or 'N/A' }}</span>
                                     </td>
                                     <td class="text-end pe-4">
-                                        {% if session.get('user_role') in ['Administrador', 'Director', 'Recepcionista'] %}
-                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEditarUsuario{{ u.id_usuario }}">
-                                            <i class="fa-solid fa-pen-to-square me-1"></i> Editar
+                                        {% if session.get('user_role') in ['Superadmin', 'Administrador'] %}
+                                        <!-- Botón Editar -->
+                                        <button class="btn btn-sm btn-outline-primary rounded-circle me-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalEditarUsuario{{ u.id_usuario }}" title="Editar datos">
+                                            <i class="fa-solid fa-pen-to-square"></i>
                                         </button>
+                                        
+                                        <!-- Botón Eliminar -->
+                                        <form action="{{ url_for('usuarios.eliminar_usuario', id_usuario=u.id_usuario) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('⚠️ ¿Está seguro de eliminar a este usuario permanentemente? Esta acción NO se puede deshacer.');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm" title="Eliminar usuario de prueba">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -339,6 +347,10 @@
                                 <option value="Recepcionista" {% if u.rol == 'Recepcionista' %}selected{% endif %}>Recepcionista</option>
                                 <option value="Especialista" {% if u.rol == 'Especialista' %}selected{% endif %}>Especialista</option>
                                 <option value="Paciente" {% if u.rol == 'Paciente' %}selected{% endif %}>Paciente</option>
+                                <option value="Administrador" {% if u.rol == 'Administrador' %}selected{% endif %}>Administrador</option>
+                                {% if current_user_role == 'Superadmin' %}
+                                <option value="Superadmin" {% if u.rol == 'Superadmin' %}selected{% endif %}>Superadmin</option>
+                                {% endif %}
                             </select>
                         </div>
                     </div>
