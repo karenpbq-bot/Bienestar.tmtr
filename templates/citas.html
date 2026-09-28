@@ -16,7 +16,7 @@
             <h2 class="fw-bold text-dark mb-1">Agenda y Atención de Citas</h2>
             <p class="text-muted small mb-0">Cronograma visual de disponibilidad, reservas y control de asistencias</p>
         </div>
-        {% if current_user_role in ['Administrador', 'Recepcionista', 'Especialista'] %}
+        {% if current_user_role in ['Superadmin', 'Administrador', 'Recepcionista', 'Especialista'] %}
         <button class="btn btn-primary shadow-sm rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalNuevaCita" style="background-color: #00A89F; border: none;">
             <i class="fa-solid fa-calendar-plus me-2"></i> Agendar Nueva Cita
         </button>
