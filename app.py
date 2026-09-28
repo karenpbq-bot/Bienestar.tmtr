@@ -119,15 +119,23 @@ def dashboard():
         total_historias = HistoriaClinicaPsi.query.count()
         
     elif rol == 'Especialista':
-        # El especialista solo ve sus propios pacientes, sus propias citas y sus historias
-        total_pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).count() # O filtrado por sus citas si aplica
+        total_pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).count()
         total_usuarios = UsuarioUni.query.filter_by(id_cliente=cliente_id).count()
         total_especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).count()
         
-        # Filtro estricto de citas por el id_especialista logueado
+        # Obtenemos el ID real del especialista (uni_especialistas) asociado al usuario logueado
+        especialista_obj = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_usuario=user_id).first()
+        if not especialista_obj:
+            usuario_actual = UsuarioUni.query.get(user_id)
+            if usuario_actual:
+                especialista_obj = EspecialistaUni.query.filter_by(id_cliente=cliente_id, email=usuario_actual.correo).first()
+        
+        esp_id_real = especialista_obj.id_especialista if especialista_obj else user_id
+
+        # Filtro estricto de citas por el ID real del especialista
         citas = CitaUni.query.filter_by(
             id_cliente=cliente_id, 
-            id_especialista=user_id
+            id_especialista=esp_id_real
         ).order_by(CitaUni.fecha_hora_inicio.asc()).all()
         
         total_historias = HistoriaClinicaPsi.query.join(PacienteUni).filter(PacienteUni.id_cliente == cliente_id).count()
