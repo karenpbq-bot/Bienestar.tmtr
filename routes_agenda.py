@@ -66,7 +66,12 @@ def gestionar_citas():
     
     # Capturar pacientes y especialistas directamente de sus tablas operativas
     pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).all()
-    especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).all()
+    
+    # Restringir la lista de especialistas en el formulario
+    if rol == 'Especialista':
+        especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_especialista=session.get('user_id')).all()
+    else:
+        especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).all()
 
     return render_template('citas.html', citas=lista_citas, pacientes=pacientes, especialistas=especialistas)
 
