@@ -66,14 +66,18 @@ def perfil_paciente():
         flash('Acceso restringido al portal de pacientes.', 'warning')
         return redirect(url_for('dashboard'))
 
-    # Buscamos el registro del paciente vinculado
+    # Búsqueda limpia y directa usando la nueva vinculación id_usuario
     paciente = PacienteUni.query.filter_by(
         id_cliente=cliente_id, 
-        id_paciente=user_id
+        id_usuario=user_id
     ).first()
 
+    # Respaldo por si algún registro antiguo no tiene el id_usuario enlazado todavía
     if not paciente:
-        paciente = PacienteUni.query.filter_by(email=session.get('user_correo')).first()
+        paciente = PacienteUni.query.filter_by(
+            id_cliente=cliente_id, 
+            email=session.get('user_correo')
+        ).first()
 
     if not paciente:
         flash('Error crítico: No se encontró su ficha de paciente asociada.', 'danger')
