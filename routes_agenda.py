@@ -11,26 +11,30 @@ def gestionar_citas():
     """Gestiona el listado y la creación de citas unificando pacientes y especialistas de ambas tablas"""
     cliente_id = session.get('id_cliente')
     rol = session.get('user_role')
+    user_id = session.get('user_id') # <-- Asegurarnos de capturar el user_id
     
     if request.method == 'POST':
+        # BLINDAJE DE SEGURIDAD: Un paciente jamás puede crear citas por esta vía
+        if rol == 'Paciente':
+            flash('Acceso denegado: Los pacientes no tienen permisos para agendar citas desde este panel.', 'danger')
+            return redirect(url_for('agenda.gestionar_citas'))
+
         id_paciente = request.form.get('id_paciente')
         id_especialista = request.form.get('id_especialista')
         
-        # BLINDAJE ESTRUCTURAL: Si es Especialista, resolvemos su ID usando la nueva relación directa
+        # BLINDAJE ESTRUCTURAL: Si es Especialista, resolvemos su ID usando la relación directa
         if rol == 'Especialista':
             esp_query = EspecialistaUni.query.filter_by(
                 id_cliente=cliente_id, 
-                id_usuario=session.get('user_id')
+                id_usuario=user_id
             ).first()
             
             if esp_query:
-                # Tomamos la llave primaria correcta (ej: 2 para Dhara)
                 id_especialista = esp_query.id_especialista
             else:
                 flash('Error crítico: Su perfil clínico no está vinculado a su usuario de acceso.', 'danger')
                 return redirect(url_for('agenda.gestionar_citas'))
         elif not id_especialista:
-            # Si es Recepcionista/Admin, toma el valor seleccionado en el formulario
             id_especialista = request.form.get('id_especialista')
 
         fecha_hora_str = request.form.get('fecha_hora_inicio')
@@ -89,30 +93,32 @@ def gestionar_citas():
 
         return redirect(url_for('agenda.gestionar_citas'))
 
-    # Filtrado Multi-Tenant para el listado de citas
+    # ==========================================
+    # FILTRADO ESTRICTO DE CITAS SEGÚN EL ROL
+    # ==========================================
     if rol == 'Superadmin':
         lista_citas = CitaUni.query.order_by(CitaUni.fecha_hora_inicio.desc()).all()
     elif rol == 'Especialista':
-        # SOLUCIÓN: Buscamos el ID real del especialista vinculado a este usuario
-        esp_actual = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_usuario=session.get('user_id')).first()
+        esp_actual = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_usuario=user_id).first()
         id_real_esp = esp_actual.id_especialista if esp_actual else 0
-        
         lista_citas = CitaUni.query.filter_by(id_cliente=cliente_id, id_especialista=id_real_esp).order_by(CitaUni.fecha_hora_inicio.desc()).all()
+    elif rol == 'Paciente':
+        # BLINDAJE DE PRIVACIDAD: El paciente SOLAMENTE ve sus propias citas
+        paciente_obj = PacienteUni.query.filter_by(id_cliente=cliente_id, id_paciente=user_id).first()
+        if not paciente_obj:
+            paciente_obj = PacienteUni.query.filter_by(email=session.get('user_correo')).first()
+        id_real_paciente = paciente_obj.id_paciente if paciente_obj else 0
+
+        lista_citas = CitaUni.query.filter_by(id_cliente=cliente_id, id_paciente=id_real_paciente).order_by(CitaUni.fecha_hora_inicio.desc()).all()
     else:
+        # Administrador, Director, Recepcionista
         lista_citas = CitaUni.query.filter_by(id_cliente=cliente_id).order_by(CitaUni.fecha_hora_inicio.desc()).all()
 
-    # UNIFICACIÓN TOTAL: Capturar pacientes de ambas tablas (PacienteUni y UsuarioUni con rol Paciente)
-    pacientes_tabla = PacienteUni.query.filter_by(id_cliente=cliente_id).all()
-    pacientes_usuarios = UsuarioUni.query.filter_by(id_cliente=cliente_id, rol='Paciente').all()
-    
-    ## 1. Cargar todos los pacientes de la clínica actual para que cualquier rol pueda seleccionarlos
+    # Cargar listas auxiliares para formularios administrativos
     pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).all()
     
-    # 2. Control de especialistas en el selector del formulario:
-    # - Si es Especialista: solo se ve a sí mismo en la lista para evitar agendar a nombre de otros.
-    # - Si es Superadmin, Administrador, Director o Recepcionista: ve a todos los especialistas de la clínica.
     if rol == 'Especialista':
-        especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_especialista=session.get('user_id')).all()
+        especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_usuario=user_id).all()
     else:
         especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).all()
 
