@@ -217,16 +217,18 @@
                 </li>
                 {% endif %}
 
-                <!-- Módulo de Agenda / Mis Citas Médicas -->
+                <!-- Módulo de Agenda de Citas (RESTRINGIDO: Solo Admin, Director, Recepcionista y Superadmin) -->
+                {% if current_user_role in ['Superadmin', 'Administrador', 'Director', 'Recepcionista'] %}
                 <li class="nav-item {% if request.endpoint in ['agenda.gestionar_citas', 'agenda.agendar_cita'] %}active{% endif %}">
                     <a href="{{ url_for('agenda.gestionar_citas') }}">
                         <i class="fa-solid fa-calendar-check"></i>
-                        <span>{% if current_user_role == 'Paciente' %}Mis Citas Médicas{% else %}Agenda de Citas{% endif %}</span>
+                        <span>Agenda de Citas</span>
                     </a>
                 </li>
+                {% endif %}
 
-                <!-- Módulo de Disponibilidad Horaria (Excluido para Pacientes) -->
-                {% if current_user_role != 'Paciente' %}
+                <!-- Módulo de Disponibilidad Horaria (RESTRINGIDO: Solo Admin, Director, Recepcionista y Superadmin) -->
+                {% if current_user_role in ['Superadmin', 'Administrador', 'Director', 'Recepcionista'] %}
                 <li class="nav-item {% if request.endpoint == 'agenda.gestionar_disponibilidad' %}active{% endif %}">
                     <a href="{{ url_for('agenda.gestionar_disponibilidad') }}">
                         <i class="fa-solid fa-business-time"></i>
