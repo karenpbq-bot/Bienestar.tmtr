@@ -179,51 +179,62 @@ def cambiar_estado_cita(id_cita):
 
 @agenda_bp.route('/citas/<int:id_cita>/reprogramar', methods=['POST'])
 @login_required
-@role_required('Superadmin', 'Director', 'Administrador', 'Recepcionista', 'Especialista')
-
+@role_required('Superadmin', 'Director', 'Administrador', 'Recepcionista')
 def reprogramar_cita(id_cita):
-    """Permite cambiar la fecha/hora de una cita existente"""
-    cita = CitaUni.query.get_or_404(id_cita)
+    """Permite al recepcionista reprogramar una cita: marca la anterior como Cancelada y Reprogramada y crea la nueva"""
+    cita_antigua = CitaUni.query.get_or_404(id_cita)
     nueva_fecha_str = request.form.get('nueva_fecha_hora')
-    motivo = request.form.get('motivo_reprogramacion', 'Reprogramación de cita')
+    motivo = request.form.get('motivo_reprogramacion', cita_antigua.motivo_reserva or 'Reprogramación de cita')
 
     try:
         nueva_inicio = datetime.strptime(nueva_fecha_str, '%Y-%m-%dT%H:%M')
-        duracion = cita.fecha_hora_fin - cita.fecha_hora_inicio
+        duracion = cita_antigua.fecha_hora_fin - cita_antigua.fecha_hora_inicio
         nueva_fin = nueva_inicio + duracion
 
+        # Validar solapamiento u horario cruzado para el especialista
         solapada = CitaUni.query.filter(
-            CitaUni.id_especialista == cita.id_especialista,
-            CitaUni.id_cita != cita.id_cita,
-            CitaUni.estado_cita != 'Cancelada',
+            CitaUni.id_especialista == cita_antigua.id_especialista,
+            CitaUni.estado_cita.in_(['Programada', 'Confirmada']),
             CitaUni.fecha_hora_inicio < nueva_fin,
             CitaUni.fecha_hora_fin > nueva_inicio
         ).first()
 
         if solapada:
-            flash('⚠️ No se puede reprogramar: El nuevo horario presenta un cruce con otra cita activa.', 'danger')
+            flash('⚠️ No se puede reprogramar: El especialista ya cuenta con una cita activa en este nuevo rango horario.', 'danger')
             return redirect(url_for('agenda.gestionar_citas'))
 
+        # 1. Marcar la cita anterior como Cancelada y Reprogramada
+        cita_antigua.estado_cita = 'Cancelada y Reprogramada'
+
+        # 2. Registrar el evento en la tabla de trazabilidad/reprogramaciones
         reprogramacion = ReprogramacionUni(
-            id_cita=cita.id_cita,
-            id_cliente=cita.id_cliente,
-            fecha_hora_anterior=cita.fecha_hora_inicio,
+            id_cita=cita_antigua.id_cita,
+            id_cliente=cita_antigua.id_cliente,
+            fecha_hora_anterior=cita_antigua.fecha_hora_inicio,
             fecha_hora_nueva=nueva_inicio,
             motivo_reprogramacion=motivo,
-            realizado_por=session.get('user_name', session.get('user_role', 'Sistema'))
+            realizado_por=session.get('user_name', session.get('user_role', 'Recepcionista'))
         )
-
-        cita.fecha_hora_inicio = nueva_inicio
-        cita.fecha_hora_fin = nueva_fin
-        cita.estado_cita = 'Programada'
-
         db.session.add(reprogramacion)
+
+        # 3. Crear la NUEVA cita oficial
+        nueva_cita = CitaUni(
+            id_cliente=cita_antigua.id_cliente,
+            id_paciente=cita_antigua.id_paciente,
+            id_especialista=cita_antigua.id_especialista,
+            fecha_hora_inicio=nueva_inicio,
+            fecha_hora_fin=nueva_fin,
+            estado_cita='Programada',
+            motivo_reserva=motivo
+        )
+        db.session.add(nueva_cita)
         db.session.commit()
-        flash(f'Cita #{cita.id_cita} reprogramada con éxito.', 'success')
+
+        flash(f'Cita #{cita_antigua.id_cita} marcada como Cancelada y Reprogramada. Nueva cita creada con éxito.', 'success')
 
     except Exception as e:
         db.session.rollback()
-        flash(f'Error al reprogramar la cita: {str(e)}', 'danger')
+        flash(f'Error al procesar la reprogramación: {str(e)}', 'danger')
 
     return redirect(url_for('agenda.gestionar_citas'))
 
