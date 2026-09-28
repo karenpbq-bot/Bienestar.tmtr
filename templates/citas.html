@@ -270,4 +270,27 @@
         }
     });
 </script>
+<!-- NUEVO SCRIPT DEL BUSCADOR DE CITAS EN LA TABLA -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const buscador = document.getElementById('buscadorCitas');
+        if (buscador) {
+            buscador.addEventListener('keyup', function() {
+                const term = this.value.toLowerCase();
+                // Selecciona todas las filas del cuerpo de la tabla
+                const rows = document.querySelectorAll('#listaPane tbody tr');
+
+                rows.forEach(row => {
+                    // Evita ocultar la fila de "No hay citas registradas" si está visible
+                    if (row.querySelector('td[colspan]')) return;
+
+                    // Convierte todo el texto de la fila a minúsculas y busca coincidencias
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(term) ? '' : 'none';
+                });
+            });
+        }
+    });
+</script>
+
 {% endblock %}
