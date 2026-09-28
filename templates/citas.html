@@ -80,13 +80,25 @@
                                         Atender
                                     </button>
                                     {% endif %}
+                                    
+                                    <!-- Selector de Estado -->
                                     <form action="{{ url_for('agenda.cambiar_estado_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;">
                                         <select name="estado_cita" class="form-select form-select-sm rounded-pill d-inline-block w-auto" onchange="this.form.submit()">
                                             <option value="Programada" {% if cita.estado_cita == 'Programada' %}selected{% endif %}>Programada</option>
                                             <option value="Completada" {% if cita.estado_cita == 'Completada' %}selected{% endif %}>Completada</option>
                                             <option value="Cancelada" {% if cita.estado_cita == 'Cancelada' %}selected{% endif %}>Cancelada</option>
+                                            <option value="No asistió" {% if cita.estado_cita == 'No asistió' %}selected{% endif %}>No asistió</option>
                                         </select>
                                     </form>
+
+                                    <!-- Botón Eliminar Definitivamente (Sólo Admins y Superadmins) -->
+                                    {% if current_user_role in ['Superadmin', 'Administrador'] %}
+                                    <form action="{{ url_for('agenda.eliminar_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('⚠️ ¿Está seguro de eliminar DEFINITIVAMENTE esta cita? Se perderá el registro y no se podrá recuperar. Esta acción NO se puede deshacer.');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle ms-1" title="Eliminar cita permanentemente">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% else %}
