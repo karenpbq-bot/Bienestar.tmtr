@@ -7,6 +7,9 @@
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
 
+<!-- Choices.js CSS para selectores con buscador -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
 <div class="container-fluid py-4 px-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
@@ -112,9 +115,10 @@
             </div>
             <form action="{{ url_for('agenda.gestionar_citas') }}" method="POST">
                 <div class="modal-body p-4">
+                    <!-- Selector de Paciente con ID para el Buscador -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold small">Paciente *</label>
-                        <select name="id_paciente" class="form-select" required>
+                        <select name="id_paciente" id="searchPaciente" class="form-select" required>
                             <option value="">-- Seleccionar Paciente --</option>
                             {% for p in pacientes %}
                             <option value="{{ p.id_paciente if p.id_paciente is defined else p.id_usuario }}">
@@ -125,9 +129,10 @@
                         </select>
                     </div>
 
+                    <!-- Selector de Especialista con ID para el Buscador -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold small">Especialista Psicólogo *</label>
-                        <select name="id_especialista" class="form-select" required>
+                        <select name="id_especialista" id="searchEspecialista" class="form-select" required>
                             <option value="">-- Seleccionar Especialista --</option>
                             {% for esp in especialistas %}
                             <option value="{{ esp.id_especialista if esp.id_especialista is defined else esp.id_usuario }}">
@@ -156,7 +161,7 @@
     </div>
 </div>
 
-<!-- Script de Inicialización de FullCalendar (Cronograma Visual Interactivo) -->
+<!-- FullCalendar Script -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
@@ -178,7 +183,7 @@
                 selectable: true,
                 selectMirror: true,
                 select: function(info) {
-                    var fechaIso = info.startStr.slice(0, 16); // Formato YYYY-MM-DDTHH:mm
+                    var fechaIso = info.startStr.slice(0, 16); 
                     var inputFecha = document.getElementById('inputFechaHora');
                     if (inputFecha) {
                         inputFecha.value = fechaIso;
@@ -202,6 +207,36 @@
                 ]
             });
             calendar.render();
+        }
+    });
+</script>
+
+<!-- Choices.js JS para inicializar los buscadores -->
+<script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const elementPaciente = document.getElementById('searchPaciente');
+        if (elementPaciente) {
+            new Choices(elementPaciente, {
+                searchEnabled: true,
+                itemSelectText: '',
+                noResultsText: 'No se encontraron pacientes',
+                noChoicesText: 'No hay opciones disponibles',
+                placeholder: true,
+                placeholderValue: '-- Seleccionar Paciente --'
+            });
+        }
+
+        const elementEspecialista = document.getElementById('searchEspecialista');
+        if (elementEspecialista) {
+            new Choices(elementEspecialista, {
+                searchEnabled: true,
+                itemSelectText: '',
+                noResultsText: 'No se encontraron especialistas',
+                noChoicesText: 'No hay opciones disponibles',
+                placeholder: true,
+                placeholderValue: '-- Seleccionar Especialista --'
+            });
         }
     });
 </script>
