@@ -297,6 +297,23 @@ class HistoriaClinicaPsi(db.Model):
     seguimientos = db.relationship('SeguimientoPsi', backref='historia_clinica', cascade='all, delete-orphan')
 
 
+# NUEVO MODELO PARA CONTROLAR PERMISOS AUTOMÁTICOS DE INTERCONSULTA Y AGENDA
+class PermisoHistoriaPsi(db.Model):
+    """Autorización para que un especialista acceda a la historia de un paciente"""
+    __tablename__ = 'psi_permisos_historia'
+
+    id_permiso = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_historia = db.Column(db.Integer, db.ForeignKey('psi_historias_clinicas.id_historia'), nullable=False)
+    id_especialista = db.Column(db.Integer, db.ForeignKey('uni_especialistas.id_especialista'), nullable=False)
+    estado_acceso = db.Column(db.Boolean, default=True)
+    origen_permiso = db.Column(db.String(200))
+    fecha_otorgamiento = db.Column(db.DateTime(timezone=True), default=get_peru_time)
+
+    # Relaciones para navegar fácilmente
+    historia = db.relationship('HistoriaClinicaPsi', backref=db.backref('permisos_asignados', lazy=True, cascade='all, delete-orphan'))
+    especialista = db.relationship('EspecialistaUni', backref=db.backref('historias_autorizadas', lazy=True))
+
+
 class SeguimientoPsi(db.Model):
     """Notas de evolución clínica bajo formato SOAP"""
     __tablename__ = 'psi_seguimiento'
