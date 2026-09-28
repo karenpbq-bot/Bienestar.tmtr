@@ -29,14 +29,13 @@ def gestionar_perfil():
 
     if request.method == 'POST':
         try:
-            # Capturamos los datos del formulario profesional
+            # 2. Datos profesionales
             especialista.telefono = request.form.get('telefono', '').strip()
             especialista.matricula = request.form.get('matricula', '').strip()
+            especialista.rne = request.form.get('rne', '').strip()  # <-- CAPTURAR RNE
             
-            # Las especialidades se pueden guardar como texto separado por comas o lista JSON
             esp_input = request.form.get('especialidades', '').strip()
             if esp_input:
-                # Convertimos el texto ingresado en una lista limpia para el campo JSONB
                 especialista.especialidades = [e.strip() for e in esp_input.split(',')]
             else:
                 especialista.especialidades = []
