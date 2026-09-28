@@ -106,10 +106,10 @@
                                             </select>
                                         </form>
 
-                                        <!-- Botón para abrir el Modal de Reprogramar Cita -->
+                                        <!-- Botón para saltar al Cronograma Visual en Vista Semanal -->
                                         {% if cita.estado_cita in ['Programada', 'Confirmada'] %}
-                                        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1 text-dark fw-semibold" data-bs-toggle="modal" data-bs-target="#modalReprogramar-{{ cita.id_cita }}" title="Reprogramar cita">
-                                            <i class="fa-solid fa-calendar-days me-1"></i> Reprogramar
+                                        <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1 text-dark fw-semibold" onclick="verEnCalendarioSemanal('{{ cita.fecha_hora_inicio.isoformat() }}')" title="Ver en calendario semanal">
+                                            <i class="fa-solid fa-calendar-days me-1"></i> Reprogramar (Ver Agenda)
                                         </button>
                                         {% endif %}
 
@@ -210,10 +210,12 @@
 
 <!-- FullCalendar Script -->
 <script>
+    var calendar; // Variable global para controlar el calendario desde los botones
+
     document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
         if (calendarEl) {
-            var calendar = new FullCalendar.Calendar(calendarEl, {
+            calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'es',
                 headerToolbar: {
@@ -258,6 +260,22 @@
             calendar.render();
         }
     });
+
+    // Función para saltar al Cronograma Semanal al hacer clic en Reprogramar desde la lista
+    function verEnCalendarioSemanal(fechaIso) {
+        // 1. Activar la pestaña del Cronograma Visual de manera programática
+        var cronogramaTab = document.getElementById('cronograma-tab');
+        if (cronogramaTab) {
+            var tab = new bootstrap.Tab(cronogramaTab);
+            tab.show();
+        }
+
+        // 2. Cambiar la vista del calendario a Semana y enfocar la fecha de la cita
+        if (calendar) {
+            calendar.changeView('timeGridWeek', fechaIso);
+            calendar.gotoDate(fechaIso);
+        }
+    }
 </script>
 
 <!-- Choices.js JS para inicializar los buscadores -->
