@@ -140,9 +140,9 @@ def gestionar_citas():
 
 @agenda_bp.route('/citas/<int:id_cita>/estado', methods=['POST'])
 @login_required
-@role_required('Superadmin', 'Director', 'Administrador', 'Recepcionista', 'Especialista')
+@role_required('Superadmin', 'Director', 'Administrador', 'Recepcionista')
 def cambiar_estado_cita(id_cita):
-    """Permite actualizar el estado de una cita y auditar permisos de historia clínica"""
+    """Permite actualizar el estado de una cita. La cancelación y gestión recae exclusivamente en Recepción/Admin"""
     cita = CitaUni.query.get_or_404(id_cita)
     nuevo_estado = request.form.get('estado_cita')
     
@@ -152,7 +152,6 @@ def cambiar_estado_cita(id_cita):
 
         # --- LÓGICA AUTOMÁTICA: REVOCACIÓN DE ACCESO POR CANCELACIÓN ---
         if nuevo_estado == 'Cancelada':
-            # Verificar si existen otras citas válidas (históricas o futuras) entre este doctor y paciente
             otras_citas = CitaUni.query.filter(
                 CitaUni.id_paciente == cita.id_paciente,
                 CitaUni.id_especialista == cita.id_especialista,
@@ -160,7 +159,6 @@ def cambiar_estado_cita(id_cita):
                 CitaUni.estado_cita.in_(['Programada', 'Completada', 'No asistió'])
             ).first()
 
-            # Si no hay historial clínico previo comprobable, revocamos el acceso a la historia
             if not otras_citas:
                 historia = HistoriaClinicaPsi.query.filter_by(id_paciente=cita.id_paciente).first()
                 if historia:
