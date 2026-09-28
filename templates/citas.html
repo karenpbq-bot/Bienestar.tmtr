@@ -80,64 +80,57 @@
                                 <td>{{ cita.especialista.nombre }} {{ cita.especialista.apellido }}</td>
                                 <td>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M') }}</td>
                                 <td>
-                                    <!-- Reemplaza el bloque del span de estado por este: -->
-                                    <span class="badge 
-                                        {% if cita.estado_cita in ['Confirmada', 'Programada'] %}bg-success
-                                        {% elif cita.estado_cita == 'Cancelada' %}bg-danger
-                                        {% elif cita.estado_cita == 'Cancelada y Reprogramada' %}bg-warning text-dark
-                                        {% else %}bg-warning text-dark{% endif %} px-3 py-2 rounded-pill">
+                                    <span class="badge ...">
                                         {{ cita.estado_cita }}
                                     </span>
                                 </td>
                                 <td>{{ cita.motivo_reserva or '-' }}</td>
+
+                                <!-- ⬇️ COLOCA EL CÓDIGO EXACTAMENTE AQUÍ (Reemplazando el <td class="text-end pe-4"> anterior) ⬇️ -->
                                 <td class="text-end pe-4">
-                                    {% if current_user_role == 'Paciente' %}
-                                        <!-- Si es Paciente, solo puede cancelar su cita si está programada -->
-                                        {% if cita.estado_cita == 'Programada' %}
-                                        <form action="{{ url_for('agenda.cambiar_estado_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita?');">
-                                            <input type="hidden" name="estado_cita" value="Cancelada">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                                                <i class="fa-solid fa-ban me-1"></i> Cancelar Cita
-                                            </button>
-                                        </form>
-                                        {% else %}
-                                        <span class="text-muted small fst-italic">Sin acciones disponibles</span>
-                                        {% endif %}
-                                    {% else %}
-                                        <!-- Acciones para personal administrativo y especialistas -->
-                                        {% if current_user_role in ['Administrador', 'Especialista'] and cita.estado_cita == 'Programada' %}
-                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1" data-bs-toggle="modal" data-bs-target="#modalAtenderCita-{{ cita.id_cita }}">
-                                            Atender
-                                        </button>
-                                        {% endif %}
-                                        
+                                    {% if current_user_role in ['Superadmin', 'Administrador', 'Director', 'Recepcionista'] %}
+                                        <!-- Acciones exclusivas para Recepción y Administración -->
+                
                                         <!-- Selector de Estado administrativo -->
-                                        <form action="{{ url_for('agenda.cambiar_estado_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;">
+                                        <form action="{{ url_for('agenda.cambiar_estado_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;" class="me-1">
                                             <select name="estado_cita" class="form-select form-select-sm rounded-pill d-inline-block w-auto" onchange="this.form.submit()">
                                                 <option value="Programada" {% if cita.estado_cita == 'Programada' %}selected{% endif %}>Programada</option>
                                                 <option value="Completada" {% if cita.estado_cita == 'Completada' %}selected{% endif %}>Completada</option>
                                                 <option value="Cancelada" {% if cita.estado_cita == 'Cancelada' %}selected{% endif %}>Cancelada</option>
                                                 <option value="No asistió" {% if cita.estado_cita == 'No asistió' %}selected{% endif %}>No asistió</option>
+                                                <option value="Cancelada y Reprogramada" {% if cita.estado_cita == 'Cancelada y Reprogramada' %}selected{% endif %}>Cancelada y Reprogramada</option>
                                             </select>
                                         </form>
 
+                                        <!-- Botón para abrir el Modal de Reprogramar Cita -->
+                                        {% if cita.estado_cita in ['Programada', 'Confirmada'] %}
+                                        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1 text-dark fw-semibold" data-bs-toggle="modal" data-bs-target="#modalReprogramar-{{ cita.id_cita }}" title="Reprogramar cita">
+                                            <i class="fa-solid fa-calendar-days me-1"></i> Reprogramar
+                                        </button>
+                                        {% endif %}
+
                                         <!-- Botón Eliminar Definitivamente (Sólo Admins y Superadmins) -->
                                         {% if current_user_role in ['Superadmin', 'Administrador'] %}
-                                        <form action="{{ url_for('agenda.eliminar_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('⚠️ ¿Está seguro de eliminar DEFINITIVAMENTE esta cita? Se perderá el registro y no se podrá recuperar. Esta acción NO se puede deshacer.');">
+                                        <form action="{{ url_for('agenda.eliminar_cita', id_cita=cita.id_cita) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('⚠️ ¿Está seguro de eliminar DEFINITIVAMENTE esta cita?');">
                                             <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle ms-1" title="Eliminar cita permanentemente">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>
                                         {% endif %}
+
+                                    {% else %}
+                                        <!-- Para Pacientes o Especialistas: Solo vista informativa de sus permisos -->
+                                        {% if current_user_role == 'Especialista' and cita.estado_cita == 'Programada' %}
+                                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalAtenderCita-{{ cita.id_cita }}">
+                                                Atender
+                                            </button>
+                                        {% else %}
+                                            <span class="text-muted small fst-italic">Solo lectura (Gestión en Recepción)</span>
+                                        {% endif %}
                                     {% endif %}
                                 </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="fa-solid fa-calendar-xmark fs-2 mb-2 d-block"></i>
-                                    No hay citas registradas en el sistema.
-                                </td>
+                                <!-- ⬆️ FIN DE LA CELDA DE ACCIONES ⬆️ -->
+
                             </tr>
                             {% endfor %}
                         </tbody>
