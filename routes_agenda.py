@@ -92,10 +92,26 @@ def gestionar_citas():
     # Capturar pacientes y especialistas directamente de sus tablas operativas
     pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).all()
     
-    # Restringir la lista de especialistas en el formulario
+    # Filtrado inteligente de pacientes y especialistas según el rol
     if rol == 'Especialista':
-        especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_especialista=session.get('user_id')).all()
+        id_especialista = session.get('user_id')
+        
+        # 1. Buscar los IDs de los pacientes que tienen o han tenido citas con este especialista
+        pacientes_ids_asignados = db.session.query(CitaUni.id_paciente).filter_by(
+            id_especialista=id_especialista, 
+            id_cliente=cliente_id
+        ).distinct().all()
+        
+        ids = [p[0] for p in pacientes_ids_asignados]
+        
+        # 2. Filtrar la lista para que el especialista solo vea a sus pacientes asignados
+        pacientes = PacienteUni.query.filter(PacienteUni.id_paciente.in_(ids), PacienteUni.id_cliente == cliente_id).all() if ids else []
+        
+        # 3. El especialista solo se ve a sí mismo en el selector de doctores
+        especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_especialista=id_especialista).all()
     else:
+        # Administradores, directores y recepcionistas mantienen acceso total
+        pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).all()
         especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).all()
 
     return render_template('citas.html', citas=lista_citas, pacientes=pacientes, especialistas=especialistas)
