@@ -93,8 +93,11 @@ def gestionar_citas():
     if rol == 'Superadmin':
         lista_citas = CitaUni.query.order_by(CitaUni.fecha_hora_inicio.desc()).all()
     elif rol == 'Especialista':
-        id_especialista = session.get('user_id')
-        lista_citas = CitaUni.query.filter_by(id_cliente=cliente_id, id_especialista=id_especialista).order_by(CitaUni.fecha_hora_inicio.desc()).all()
+        # SOLUCIÓN: Buscamos el ID real del especialista vinculado a este usuario
+        esp_actual = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_usuario=session.get('user_id')).first()
+        id_real_esp = esp_actual.id_especialista if esp_actual else 0
+        
+        lista_citas = CitaUni.query.filter_by(id_cliente=cliente_id, id_especialista=id_real_esp).order_by(CitaUni.fecha_hora_inicio.desc()).all()
     else:
         lista_citas = CitaUni.query.filter_by(id_cliente=cliente_id).order_by(CitaUni.fecha_hora_inicio.desc()).all()
 
