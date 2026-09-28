@@ -396,3 +396,22 @@ def eliminar_disponibilidad(id_disponibilidad):
     
     flash('Intervalo horario eliminado correctamente.', 'success')
     return redirect(url_for('agenda.gestionar_disponibilidad', id_especialista=especialista_id))
+
+@agenda_bp.route('/citas/<int:id_cita>/eliminar', methods=['POST'])
+@login_required
+@role_required('Superadmin', 'Administrador')
+def eliminar_cita(id_cita):
+    """Elimina físicamente una cita de la base de datos (Exclusivo para Admins)"""
+    cita = CitaUni.query.get_or_404(id_cita)
+
+    try:
+        # Al eliminar la cita, SQLAlchemy limpiará en cascada los permisos
+        # de historia clínica huérfanos gracias a la configuración del modelo.
+        db.session.delete(cita)
+        db.session.commit()
+        flash(f'La Cita #{id_cita} ha sido eliminada permanentemente del sistema.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al intentar eliminar la cita: {str(e)}', 'danger')
+
+    return redirect(url_for('agenda.gestionar_citas'))
