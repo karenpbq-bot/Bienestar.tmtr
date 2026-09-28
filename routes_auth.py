@@ -158,3 +158,63 @@ def logout():
     session.clear()
     flash('Has cerrado sesión correctamente.', 'info')
     return redirect(url_for('auth.login'))
+
+
+# ===========================================================================
+# CAMBIO DE CONTRASEÑA
+# ===========================================================================
+
+@auth_bp.route('/cambiar-password', methods=['GET', 'POST'])
+@login_required
+def cambiar_password():
+    """Permite al usuario cambiar su contraseña temporal (DNI o generada) por una propia"""
+    if request.method == 'POST':
+        password_actual = request.form.get('password_actual', '')
+        nueva_password = request.form.get('nueva_password', '')
+        confirmar_password = request.form.get('confirmar_password', '')
+
+        # Validar que ningún campo esté vacío
+        if not password_actual or not nueva_password or not confirmar_password:
+            flash('Por favor complete todos los campos.', 'warning')
+            return redirect(url_for('auth.cambiar_password'))
+
+        # Validar que las nuevas contraseñas coincidan exactamente
+        if nueva_password != confirmar_password:
+            flash('Las nuevas contraseñas no coinciden.', 'danger')
+            return redirect(url_for('auth.cambiar_password'))
+
+        # Validar que la nueva contraseña tenga una longitud mínima de 8 caracteres
+        if len(nueva_password) < 8:
+            flash('La nueva contraseña debe tener al menos 8 caracteres.', 'warning')
+            return redirect(url_for('auth.cambiar_password'))
+
+        user_id = session.get('user_id')
+        user_role = session.get('user_role')
+        usuario_obj = None
+
+        # Identificar la tabla correcta según el rol en sesión
+        if user_role == 'Paciente':
+            usuario_obj = PacienteUni.query.get(user_id)
+        elif user_role == 'Especialista':
+            usuario_obj = EspecialistaUni.query.get(user_id)
+        else:
+            usuario_obj = UsuarioUni.query.get(user_id)
+
+        if usuario_obj:
+            # Validar contraseña actual (DNI inicial o la generada por el superadmin)
+            check = usuario_obj.check_password(password_actual) if hasattr(usuario_obj, 'check_password') else False
+            
+            if check:
+                usuario_obj.set_password(nueva_password)
+                db.session.commit()
+                flash('¡Contraseña actualizada exitosamente! Por seguridad, inicie sesión nuevamente.', 'success')
+                session.clear()
+                return redirect(url_for('auth.login'))
+            else:
+                flash('La contraseña actual es incorrecta.', 'danger')
+        else:
+            flash('Usuario no encontrado.', 'danger')
+
+        return redirect(url_for('auth.cambiar_password'))
+
+    return render_template('cambiar_password.html')
