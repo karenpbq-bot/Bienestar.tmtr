@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from models import db, CitaUni, PacienteUni, EspecialistaUni, UsuarioUni, ReprogramacionUni, DisponibilidadUni, get_peru_time
+from models import db, CitaUni, PacienteUni, EspecialistaUni, UsuarioUni, ReprogramacionUni, DisponibilidadUni, get_peru_time, PermisoHistoriaPsi, HistoriaClinicaPsi
 from datetime import datetime, timedelta
 from routes_auth import login_required, role_required
 
@@ -44,6 +44,26 @@ def gestionar_citas():
             )
             db.session.add(nueva_cita)
             db.session.commit()
+            
+            # --- LÓGICA AUTOMÁTICA: OTORGAR ACCESO A LA HISTORIA ---
+            historia = HistoriaClinicaPsi.query.filter_by(id_paciente=int(id_paciente)).first()
+            if historia:
+                permiso_existente = PermisoHistoriaPsi.query.filter_by(
+                    id_historia=historia.id_historia,
+                    id_especialista=int(id_especialista)
+                ).first()
+
+                if not permiso_existente:
+                    nuevo_permiso = PermisoHistoriaPsi(
+                        id_historia=historia.id_historia,
+                        id_especialista=int(id_especialista),
+                        estado_acceso=True,
+                        origen_permiso=f"Generado automáticamente por Cita #{nueva_cita.id_cita}",
+                        fecha_otorgamiento=get_peru_time()
+                    )
+                    db.session.add(nuevo_permiso)
+                    db.session.commit()
+            
             flash('Cita programada con éxito.', 'success')
         except Exception as e:
             db.session.rollback()
@@ -79,15 +99,37 @@ def gestionar_citas():
 @agenda_bp.route('/citas/<int:id_cita>/estado', methods=['POST'])
 @login_required
 @role_required('Superadmin', 'Director', 'Administrador', 'Recepcionista', 'Especialista')
-
 def cambiar_estado_cita(id_cita):
-    """Permite actualizar el estado de una cita"""
+    """Permite actualizar el estado de una cita y auditar permisos de historia clínica"""
     cita = CitaUni.query.get_or_404(id_cita)
     nuevo_estado = request.form.get('estado_cita')
     
     if nuevo_estado in ['Programada', 'Completada', 'Cancelada', 'No asistió']:
         cita.estado_cita = nuevo_estado
         db.session.commit()
+
+        # --- LÓGICA AUTOMÁTICA: REVOCACIÓN DE ACCESO POR CANCELACIÓN ---
+        if nuevo_estado == 'Cancelada':
+            # Verificar si existen otras citas válidas (históricas o futuras) entre este doctor y paciente
+            otras_citas = CitaUni.query.filter(
+                CitaUni.id_paciente == cita.id_paciente,
+                CitaUni.id_especialista == cita.id_especialista,
+                CitaUni.id_cita != cita.id_cita,
+                CitaUni.estado_cita.in_(['Programada', 'Completada', 'No asistió'])
+            ).first()
+
+            # Si no hay historial clínico previo comprobable, revocamos el acceso a la historia
+            if not otras_citas:
+                historia = HistoriaClinicaPsi.query.filter_by(id_paciente=cita.id_paciente).first()
+                if historia:
+                    permiso = PermisoHistoriaPsi.query.filter_by(
+                        id_historia=historia.id_historia,
+                        id_especialista=cita.id_especialista
+                    ).first()
+                    if permiso:
+                        db.session.delete(permiso)
+                        db.session.commit()
+
         flash(f'El estado de la cita #{cita.id_cita} ha sido actualizado a: {nuevo_estado}', 'success')
     else:
         flash('Estado no válido.', 'warning')
