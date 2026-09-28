@@ -103,13 +103,26 @@ def gestionar_citas():
         id_real_esp = esp_actual.id_especialista if esp_actual else 0
         lista_citas = CitaUni.query.filter_by(id_cliente=cliente_id, id_especialista=id_real_esp).order_by(CitaUni.fecha_hora_inicio.desc()).all()
     elif rol == 'Paciente':
-        # BLINDAJE DE PRIVACIDAD: El paciente SOLAMENTE ve sus propias citas
-        paciente_obj = PacienteUni.query.filter_by(id_cliente=cliente_id, id_paciente=user_id).first()
+        # BLINDAJE DE PRIVACIDAD MULTI-TENANT: Buscamos al paciente por id_usuario y id_cliente
+        paciente_obj = PacienteUni.query.filter_by(
+            id_cliente=cliente_id, 
+            id_usuario=user_id
+        ).first()
+        
+        # Respaldo por correo si fuera necesario
         if not paciente_obj:
-            paciente_obj = PacienteUni.query.filter_by(email=session.get('user_correo')).first()
+            paciente_obj = PacienteUni.query.filter_by(
+                id_cliente=cliente_id, 
+                email=session.get('user_correo')
+            ).first()
+
         id_real_paciente = paciente_obj.id_paciente if paciente_obj else 0
 
-        lista_citas = CitaUni.query.filter_by(id_cliente=cliente_id, id_paciente=id_real_paciente).order_by(CitaUni.fecha_hora_inicio.desc()).all()
+        # El paciente SOLAMENTE ve las citas que le pertenecen en esta clínica
+        lista_citas = CitaUni.query.filter_by(
+            id_cliente=cliente_id, 
+            id_paciente=id_real_paciente
+        ).order_by(CitaUni.fecha_hora_inicio.desc()).all()
     else:
         # Administrador, Director, Recepcionista
         lista_citas = CitaUni.query.filter_by(id_cliente=cliente_id).order_by(CitaUni.fecha_hora_inicio.desc()).all()
