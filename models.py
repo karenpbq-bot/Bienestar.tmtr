@@ -134,7 +134,7 @@ class PacienteUni(db.Model):
 
     id_paciente = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_cliente = db.Column(db.Integer, db.ForeignKey('uni_clientes.id_cliente'), nullable=False)
-    id_usuario = db.Column(db.Integer, db.ForeignKey('uni_usuarios.id_usuario'), nullable=True) # <-- ESTA LÍNEA ES LA QUE FALTA EN MODELS.PY
+    id_usuario = db.Column(db.Integer, db.ForeignKey('uni_usuarios.id_usuario'), nullable=True) # <-- ESTA LÍNEA DEBE ESTAR SÍ O SÍ EN MODELS.PY
     codigo_invitacion_7d = db.Column(db.String(7), unique=False, nullable=False, index=True)
     
     # Datos Personales y Demográficos
