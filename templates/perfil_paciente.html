@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Ficha Personal - Renovatia{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Mi Ficha Personal y Médica</h2>
+            <p class="text-muted small mb-0">Mantén tus datos de contacto y antecedentes clínicos actualizados para una mejor atención</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                <form action="{{ url_for('perfil.perfil_paciente') }}" method="POST">
+                    <div class="row g-3">
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Nombres *</label>
+                            <input type="text" name="nombre" class="form-control" value="{{ paciente.nombre }}" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Apellidos *</label>
+                            <input type="text" name="apellido" class="form-control" value="{{ paciente.apellido }}" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">DNI (Corregible)</label>
+                            <input type="text" name="dni" class="form-control" value="{{ paciente.dni or '' }}" placeholder="Ingrese su DNI">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Correo Electrónico (No modificable)</label>
+                            <input type="email" class="form-control bg-light" value="{{ paciente.email }}" readonly>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Teléfono / Celular</label>
+                            <input type="text" name="telefono" class="form-control" value="{{ paciente.telefono or '' }}" placeholder="Ej. +51 987654321">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Fecha de Nacimiento</label>
+                            <input type="date" name="fecha_nac" class="form-control" value="{{ paciente.fecha_nac.strftime('%Y-%m-%d') if paciente.fecha_nac else '' }}">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold small">Dirección de Domicilio</label>
+                            <input type="text" name="direccion" class="form-control" value="{{ paciente.direccion or '' }}" placeholder="Ej. Av. Larco 123, Arequipa">
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h5 class="fw-bold text-secondary fs-6 border-bottom pb-2">Información Médica de Emergencia</h5>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small">Grupo Sanguíneo</label>
+                            <select name="grupo_sangre" class="form-select">
+                                <option value="">-- Seleccionar --</option>
+                                {% for tipo in ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'] %}
+                                <option value="{{ tipo }}" {% if paciente.grupo_sangre == tipo %}selected{% endif %}>{{ tipo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Seguro / Obra Social</label>
+                            <input type="text" name="obra_social" class="form-control" value="{{ paciente.obra_social or '' }}" placeholder="Ej. Particular, Rímac, Pacífico...">
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold small">N° de Afiliado / Póliza</label>
+                            <input type="text" name="nro_afiliado" class="form-control" value="{{ paciente.nro_afiliado or '' }}" placeholder="Número de póliza o afiliación">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold small">Alergias o Condiciones Especiales</label>
+                            <textarea name="alergias" class="form-control" rows="2" placeholder="Describa si padece alguna alergia a medicamentos u otras condiciones importantes...">{{ paciente.alergias or '' }}</textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm" style="background-color: #00A89F; border: none;">
+                            <i class="fa-solid fa-floppy-disk me-2"></i> Guardar Mis Datos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
