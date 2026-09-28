@@ -7,10 +7,12 @@ from models import (
     PacienteUni, DisponibilidadUni, CitaUni, ReprogramacionUni, 
     HistoriaClinicaPsi, SeguimientoPsi
 )
+from routes_perfil import perfil_bp
 
 # 1. ÚNICA CREACIÓN DE LA INSTANCIA DE APP
 app = Flask(__name__)
 app.config.from_object(Config)
+app.register_blueprint(perfil_bp)
 db.init_app(app)
 
 # --- REGISTRO DE BLUEPRINTS (MÓDULOS MODULARES) ---
