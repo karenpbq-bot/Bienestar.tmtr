@@ -246,7 +246,7 @@ def generar_codigo_7d():
 
 @usuarios_bp.route('/usuarios/editar/<int:id_usuario>', methods=['POST'])
 @login_required
-@role_required('Superadmin', 'Administrador', 'Director', 'Recepcionista')
+@role_required('Superadmin', 'Administrador')
 def editar_usuario(id_usuario):
     usuario = UsuarioUni.query.get_or_404(id_usuario)
     rol_sesion = session.get('user_role')
@@ -295,7 +295,7 @@ def reset_password(id_usuario):
 
 @usuarios_bp.route('/usuarios/eliminar/<int:id_usuario>', methods=['POST'])
 @login_required
-@role_required('Superadmin', 'Administrador', 'Director', 'Recepcionista')
+@role_required('Superadmin', 'Administrador')
 def eliminar_usuario(id_usuario):
     usuario = UsuarioUni.query.get_or_404(id_usuario)
     rol_sesion = session.get('user_role')
