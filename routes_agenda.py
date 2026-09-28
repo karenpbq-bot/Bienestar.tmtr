@@ -15,19 +15,22 @@ def gestionar_citas():
     if request.method == 'POST':
         id_paciente = request.form.get('id_paciente')
         id_especialista = request.form.get('id_especialista')
-            
-        # BLINDAJE: Si es Especialista, obtenemos su ID real correspondiente a la tabla uni_especialistas
+        
+        # BLINDAJE ESTRUCTURAL: Si es Especialista, resolvemos su ID usando la nueva relación directa
         if rol == 'Especialista':
-            especialista_reg = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_usuario=session.get('user_id')).first()
-            if not especialista_reg:
-                # Búsqueda alternativa por si el campo de relación usa otro nombre
-                especialista_reg = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_especialista=session.get('user_id')).first()
+            esp_query = EspecialistaUni.query.filter_by(
+                id_cliente=cliente_id, 
+                id_usuario=session.get('user_id')
+            ).first()
             
-            if especialista_reg:
-                id_especialista = especialista_reg.id_especialista if hasattr(especialista_reg, 'id_especialista') else especialista_reg.id_usuario
+            if esp_query:
+                # Tomamos la llave primaria correcta (ej: 2 para Dhara)
+                id_especialista = esp_query.id_especialista
             else:
-                id_especialista = session.get('user_id')
+                flash('Error crítico: Su perfil clínico no está vinculado a su usuario de acceso.', 'danger')
+                return redirect(url_for('agenda.gestionar_citas'))
         elif not id_especialista:
+            # Si es Recepcionista/Admin, toma el valor seleccionado en el formulario
             id_especialista = request.form.get('id_especialista')
 
         fecha_hora_str = request.form.get('fecha_hora_inicio')
