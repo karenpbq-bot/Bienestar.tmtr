@@ -16,9 +16,19 @@ def gestionar_citas():
         id_paciente = request.form.get('id_paciente')
         id_especialista = request.form.get('id_especialista')
             
-        # BLINDAJE: Si es Especialista y el select HTML está deshabilitado/oculto, forzamos su ID
-        if rol == 'Especialista' and not id_especialista:
-            id_especialista = session.get('user_id')
+        # BLINDAJE: Si es Especialista, obtenemos su ID real correspondiente a la tabla uni_especialistas
+        if rol == 'Especialista':
+            especialista_reg = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_usuario=session.get('user_id')).first()
+            if not especialista_reg:
+                # Búsqueda alternativa por si el campo de relación usa otro nombre
+                especialista_reg = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_especialista=session.get('user_id')).first()
+            
+            if especialista_reg:
+                id_especialista = especialista_reg.id_especialista if hasattr(especialista_reg, 'id_especialista') else especialista_reg.id_usuario
+            else:
+                id_especialista = session.get('user_id')
+        elif not id_especialista:
+            id_especialista = request.form.get('id_especialista')
 
         fecha_hora_str = request.form.get('fecha_hora_inicio')
         motivo = request.form.get('motivo_reserva', '')
