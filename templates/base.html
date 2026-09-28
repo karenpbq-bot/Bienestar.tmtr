@@ -238,7 +238,17 @@
                         <span>Disponibilidad Horaria</span>
                     </a>
                 </li>
-                
+
+                <!-- Módulo de Mi Perfil Profesional (Exclusivo para Especialistas) -->
+                {% if current_user_role == 'Especialista' %}
+                <li class="nav-item {% if request.endpoint == 'perfil.gestionar_perfil' %}active{% endif %}">
+                    <a href="{{ url_for('perfil.gestionar_perfil') }}">
+                        <i class="fa-solid fa-user-gear"></i>
+                        <span>Mi Perfil Profesional</span>
+                    </a>
+                </li>
+                {% endif %}
+                             
                 <!-- Módulo de Historias Clínicas -->
                 {% if current_user_role == 'Superadmin' or current_user_role in ['Administrador', 'Especialista', 'Paciente'] %}
                 <li class="nav-item {% if request.endpoint in ['clinica.listar_historias', 'clinica.crear_historia', 'clinica.ver_historia'] %}active{% endif %}">
