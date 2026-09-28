@@ -129,17 +129,24 @@
                         </select>
                     </div>
 
-                    <!-- Selector de Especialista con ID para el Buscador -->
+                    <!-- Selector de Especialista condicional según el rol -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold small">Especialista Psicólogo *</label>
-                        <select name="id_especialista" id="searchEspecialista" class="form-select" required>
-                            <option value="">-- Seleccionar Especialista --</option>
-                            {% for esp in especialistas %}
-                            <option value="{{ esp.id_especialista if esp.id_especialista is defined else esp.id_usuario }}">
-                                {{ esp.nombre ~ ' ' ~ esp.apellido if esp.nombre else esp.nombres_apellidos }}
-                            </option>
-                            {% endfor %}
-                        </select>
+                        {% if current_user_role == 'Especialista' %}
+                            <!-- Si es Especialista, se asigna automáticamente con su sesión (Inhabilitado visualmente pero activo) -->
+                            <input type="text" class="form-control bg-light fw-bold text-primary" value="{{ current_user_name }}" readonly>
+                            <input type="hidden" name="id_especialista" value="{{ session.get('user_id') }}">
+                        {% else %}
+                            <!-- Si es Admin, Director o Recepcionista, ve el selector completo con buscador -->
+                            <select name="id_especialista" id="searchEspecialista" class="form-select" required>
+                                <option value="">-- Seleccionar Especialista --</option>
+                                {% for esp in especialistas %}
+                                <option value="{{ esp.id_especialista if esp.id_especialista is defined else esp.id_usuario }}">
+                                    {{ esp.nombre ~ ' ' ~ esp.apellido if esp.nombre else esp.nombres_apellidos }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
                     </div>
 
                     <div class="mb-3">
