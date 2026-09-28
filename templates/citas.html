@@ -48,6 +48,17 @@
         <!-- PESTAÑA 2: LISTA TRADICIONAL DE CITAS -->
         <div class="tab-pane fade" id="listaPane" role="tabpanel">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                
+                <!-- Buscador de Citas (Visible para Superadmin y Admin) -->
+                {% if current_user_role in ['Superadmin', 'Administrador'] %}
+                <div class="card-header bg-white border-bottom p-3 d-flex justify-content-end">
+                    <div class="input-group input-group-sm w-25" style="min-width: 250px;">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" id="buscadorCitas" class="form-control border-start-0 bg-light" placeholder="Buscar paciente, especialista, motivo...">
+                    </div>
+                </div>
+                {% endif %}
+
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="bg-light text-uppercase fs-7 text-secondary">
