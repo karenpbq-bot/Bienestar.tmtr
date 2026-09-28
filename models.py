@@ -99,30 +99,20 @@ class UsuarioUni(db.Model):
 
 
 class EspecialistaUni(db.Model):
-    """Profesionales de la salud vinculados al consultorio"""
     __tablename__ = 'uni_especialistas'
-
-    id_especialista = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_cliente = db.Column(db.Integer, db.ForeignKey('uni_clientes.id_cliente'), nullable=False)
     
-    # --- NUEVA COLUMNA: ENLACE AL USUARIO DE SESIÓN ---
-    id_usuario = db.Column(db.Integer, db.ForeignKey('uni_usuarios.id_usuario'), nullable=True)
-    
+    id_especialista = db.Column(db.Integer, primary_key=True)
+    id_cliente = db.Column(db.Integer, db.ForeignKey('uni_clientes.id_cliente'))
+    id_usuario = db.Column(db.Integer, db.ForeignKey('uni_usuarios.id_usuario'))
     estado = db.Column(db.Boolean, default=True)
-
-    # Datos Personales y Profesionales
-    nombre = db.Column(db.String(100), nullable=False)
-    apellido = db.Column(db.String(100), nullable=False)
-    matricula = db.Column(db.String(50), nullable=True)
-    especialidades = db.Column(db.JSON, nullable=True)
-
-    # Contacto y Acceso
-    telefono = db.Column(db.String(20), nullable=True)
-    
-    # 💡 AJUSTE CLAVE MULTI-TENANT: Quitamos el "unique=True"
-    email = db.Column(db.String(120), nullable=False, index=True) 
-    
-    password_hash = db.Column(db.String(256), nullable=True)
+    nombre = db.Column(db.String(100))
+    apellido = db.Column(db.String(100))
+    matricula = db.Column(db.String(50))
+    rne = db.Column(db.String(50))  # <-- NUEVO CAMPO RNE AÑADIDO
+    especialidades = db.Column(db.JSON)
+    telefono = db.Column(db.String(50))
+    email = db.Column(db.String(120))
+    password_hash = db.Column(db.String(255))
 
     # Relaciones de Agendamiento
     disponibilidades = db.relationship('DisponibilidadUni', backref='especialista', lazy=True, cascade="all, delete-orphan")
