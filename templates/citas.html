@@ -80,7 +80,11 @@
                                 <td>{{ cita.especialista.nombre }} {{ cita.especialista.apellido }}</td>
                                 <td>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M') }}</td>
                                 <td>
-                                    <span class="badge ...">
+                                    <span class="badge 
+                                        {% if cita.estado_cita in ['Confirmada', 'Programada'] %}bg-success text-white
+                                        {% elif cita.estado_cita == 'Cancelada' %}bg-danger text-white
+                                        {% elif cita.estado_cita == 'Cancelada y Reprogramada' %}bg-warning text-dark fw-bold
+                                        {% else %}bg-secondary text-white{% endif %} px-3 py-2 rounded-pill">
                                         {{ cita.estado_cita }}
                                     </span>
                                 </td>
@@ -308,4 +312,40 @@
     });
 </script>
 
-{% endblock %}
+<!-- MODALES DE REPROGRAMACIÓN DINÁMICOS PARA CADA CITA -->
+{% for cita in citas %}
+<div class="modal fade" id="modalReprogramar-{{ cita.id_cita }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-light border-0 px-4 py-3">
+                <h5 class="modal-title fw-bold text-dark">🔄 Reprogramar Cita #{{ cita.id_cita }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('agenda.reprogramar_cita', id_cita=cita.id_cita) }}" method="POST">
+                <div class="modal-body p-4 text-start">
+                    <p class="small text-muted mb-3">
+                        Paciente: <strong>{{ cita.paciente.nombre }} {{ cita.paciente.apellido }}</strong><br>
+                        Especialista: <strong>Dr(a). {{ cita.especialista.nombre }} {{ cita.especialista.apellido }}</strong><br>
+                        Fecha Actual: <strong>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M') }}</strong>
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Nueva Fecha y Hora *</label>
+                        <input type="datetime-local" name="nueva_fecha_hora" class="form-control" required>
+                        <div class="form-text text-muted small">Seleccione el nuevo horario considerando la disponibilidad.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Motivo de la Reprogramación</label>
+                        <input type="text" name="motivo_reprogramacion" class="form-control" placeholder="Ej. Solicitud del paciente...">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4 shadow-sm text-dark fw-semibold" style="background-color: #f97316; border: none; color: white !important;">Confirmar Reprogramación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
