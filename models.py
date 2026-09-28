@@ -104,6 +104,10 @@ class EspecialistaUni(db.Model):
 
     id_especialista = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_cliente = db.Column(db.Integer, db.ForeignKey('uni_clientes.id_cliente'), nullable=False)
+    
+    # --- NUEVA COLUMNA: ENLACE AL USUARIO DE SESIÓN ---
+    id_usuario = db.Column(db.Integer, db.ForeignKey('uni_usuarios.id_usuario'), nullable=True)
+    
     estado = db.Column(db.Boolean, default=True)
 
     # Datos Personales y Profesionales
@@ -114,7 +118,10 @@ class EspecialistaUni(db.Model):
 
     # Contacto y Acceso
     telefono = db.Column(db.String(20), nullable=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    
+    # 💡 AJUSTE CLAVE MULTI-TENANT: Quitamos el "unique=True"
+    email = db.Column(db.String(120), nullable=False, index=True) 
+    
     password_hash = db.Column(db.String(256), nullable=True)
 
     # Relaciones de Agendamiento
