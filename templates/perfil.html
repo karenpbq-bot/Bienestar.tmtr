@@ -7,38 +7,50 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-dark mb-1">Mi Perfil Profesional</h2>
-            <p class="text-muted small mb-0">Gestión de datos de contacto, matrícula y especialidades clínicas</p>
+            <p class="text-muted small mb-0">Gestión y corrección de datos personales, matrícula, RNE y especialidades clínicas</p>
         </div>
     </div>
 
     <div class="row">
-        <div class="col-lg-8">
+        <!-- Formulario principal a ancho completo (col-lg-12) -->
+        <div class="col-lg-12">
             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
                 <form action="{{ url_for('perfil.gestionar_perfil') }}" method="POST">
                     <div class="row g-3">
                         
-                        <!-- Datos de Identificación (Solo Lectura por seguridad) -->
+                        <!-- Datos de Identificación (Editables para corrección de errores) -->
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Nombres y Apellidos</label>
-                            <input type="text" class="form-control bg-light" value="{{ especialista.nombre }} {{ especialista.apellido }}" readonly>
+                            <label class="form-label fw-semibold small">Nombres y Apellidos *</label>
+                            <input type="text" name="nombres_apellidos" class="form-control" value="{{ especialista.nombre }} {{ especialista.apellido }}" required>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small">DNI (Corregible)</label>
+                            <input type="text" name="dni" class="form-control" value="{{ usuario.dni if usuario else '' }}" placeholder="Ingrese DNI">
                         </div>
                         
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Correo Electrónico</label>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small">Correo Electrónico (No modificable)</label>
                             <input type="email" class="form-control bg-light" value="{{ especialista.email }}" readonly>
                         </div>
 
-                        <!-- Datos Editables del Especialista -->
-                        <div class="col-md-6">
+                        <!-- Datos Profesionales (Matrícula, RNE y Teléfono) -->
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Número de Colegiatura (Matrícula)</label>
+                            <input type="text" name="matricula" class="form-control" value="{{ especialista.matricula or '' }}" placeholder="Ej. C.Ps.P. 34512">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">N° de Registro de Especialidad (RNE)</label>
+                            <input type="text" name="rne" class="form-control" value="{{ especialista.rne or '' }}" placeholder="Ej. RNE 12345">
+                        </div>
+
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold small">Teléfono / Celular de Contacto</label>
                             <input type="text" name="telefono" class="form-control" value="{{ especialista.telefono or '' }}" placeholder="Ej. +51 987654321">
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Número de Colegiatura / Matrícula</label>
-                            <input type="text" name="matricula" class="form-control" value="{{ especialista.matricula or '' }}" placeholder="Ej. C.Ps.P. 34512">
-                        </div>
-
+                        <!-- Especialidades -->
                         <div class="col-md-12">
                             <label class="form-label fw-semibold small">Especialidades (Separadas por comas)</label>
                             <input type="text" name="especialidades" class="form-control" value="{{ especialista.especialidades | join(', ') if especialista.especialidades else '' }}" placeholder="Ej. Psicología Clínica, Terapia Cognitivo-Conductual, Parejas">
@@ -53,23 +65,6 @@
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
-
-        <!-- Tarjeta Lateral de Resumen -->
-        <div class="col-lg-4 mt-4 mt-lg-0">
-            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center">
-                <div class="mb-3">
-                    <span class="fa-stack fa-2x" style="color: #00A89F;">
-                        <i class="fa-solid fa-circle fa-stack-2x text-light"></i>
-                        <i class="fa-solid fa-user-doctor fa-stack-1x"></i>
-                    </span>
-                </div>
-                <h5 class="fw-bold text-dark">{{ especialista.nombre }} {{ especialista.apellido }}</h5>
-                <p class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-semibold mb-3">Especialista Clínico</p>
-                <hr class="text-muted opacity-25">
-                <p class="text-muted small text-start mb-1"><strong>Estado de Cuenta:</strong> <span class="text-success fw-bold">Activo</span></p>
-                <p class="text-muted small text-start mb-0"><strong>Sede / Cliente ID:</strong> #{{ especialista.id_cliente }}</p>
             </div>
         </div>
     </div>
