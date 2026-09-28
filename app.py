@@ -102,26 +102,42 @@ def inject_globals():
         'current_cliente_nombre': cliente_nombre
     }
 
-# --- Dashboard Principal (Aislado por id_cliente) ---
+# --- Dashboard Principal (Aislado por id_cliente y restricciones de rol) ---
 @app.route('/')
 @login_required
 def dashboard():
     rol = session.get('user_role')
     cliente_id = session.get('id_cliente')
+    user_id = session.get('user_id')
 
-    # Filtrado multi-tenant según el rol y la empresa
+    # Filtrado multi-tenant y por rol
     if rol == 'Superadmin':
         total_pacientes = PacienteUni.query.count()
         total_usuarios = UsuarioUni.query.count()
         total_especialistas = EspecialistaUni.query.count()
         citas = CitaUni.query.order_by(CitaUni.fecha_hora_inicio.asc()).all()
         total_historias = HistoriaClinicaPsi.query.count()
+        
+    elif rol == 'Especialista':
+        # El especialista solo ve sus propios pacientes, sus propias citas y sus historias
+        total_pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).count() # O filtrado por sus citas si aplica
+        total_usuarios = UsuarioUni.query.filter_by(id_cliente=cliente_id).count()
+        total_especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).count()
+        
+        # Filtro estricto de citas por el id_especialista logueado
+        citas = CitaUni.query.filter_by(
+            id_cliente=cliente_id, 
+            id_especialista=user_id
+        ).order_by(CitaUni.fecha_hora_inicio.asc()).all()
+        
+        total_historias = HistoriaClinicaPsi.query.join(PacienteUni).filter(PacienteUni.id_cliente == cliente_id).count()
+        
     else:
+        # Administrador, Director, Recepcionista (Ven todo lo de su sede)
         total_pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).count()
         total_usuarios = UsuarioUni.query.filter_by(id_cliente=cliente_id).count()
         total_especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).count()
         citas = CitaUni.query.filter_by(id_cliente=cliente_id).order_by(CitaUni.fecha_hora_inicio.asc()).all()
-        
         total_historias = HistoriaClinicaPsi.query.join(PacienteUni).filter(PacienteUni.id_cliente == cliente_id).count()
 
     citas_programadas = sum(1 for c in citas if c.estado_cita == 'Programada')
