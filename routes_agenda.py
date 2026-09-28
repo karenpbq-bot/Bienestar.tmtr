@@ -89,29 +89,15 @@ def gestionar_citas():
     pacientes_tabla = PacienteUni.query.filter_by(id_cliente=cliente_id).all()
     pacientes_usuarios = UsuarioUni.query.filter_by(id_cliente=cliente_id, rol='Paciente').all()
     
-    # Capturar pacientes y especialistas directamente de sus tablas operativas
+    ## 1. Cargar todos los pacientes de la clínica actual para que cualquier rol pueda seleccionarlos
     pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).all()
     
-    # Filtrado inteligente de pacientes y especialistas según el rol
+    # 2. Control de especialistas en el selector del formulario:
+    # - Si es Especialista: solo se ve a sí mismo en la lista para evitar agendar a nombre de otros.
+    # - Si es Superadmin, Administrador, Director o Recepcionista: ve a todos los especialistas de la clínica.
     if rol == 'Especialista':
-        id_especialista = session.get('user_id')
-        
-        # 1. Buscar los IDs de los pacientes que tienen o han tenido citas con este especialista
-        pacientes_ids_asignados = db.session.query(CitaUni.id_paciente).filter_by(
-            id_especialista=id_especialista, 
-            id_cliente=cliente_id
-        ).distinct().all()
-        
-        ids = [p[0] for p in pacientes_ids_asignados]
-        
-        # 2. Filtrar la lista para que el especialista solo vea a sus pacientes asignados
-        pacientes = PacienteUni.query.filter(PacienteUni.id_paciente.in_(ids), PacienteUni.id_cliente == cliente_id).all() if ids else []
-        
-        # 3. El especialista solo se ve a sí mismo en el selector de doctores
-        especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_especialista=id_especialista).all()
+        especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_especialista=session.get('user_id')).all()
     else:
-        # Administradores, directores y recepcionistas mantienen acceso total
-        pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).all()
         especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).all()
 
     return render_template('citas.html', citas=lista_citas, pacientes=pacientes, especialistas=especialistas)
