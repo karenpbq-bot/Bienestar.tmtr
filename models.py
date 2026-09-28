@@ -268,28 +268,29 @@ class HistoriaClinicaPsi(db.Model):
     
     nro_historia = db.Column(db.String(15), nullable=True)
     grado_instruccion = db.Column(db.String(50), nullable=True)
-    ocupacion_actual = db.Column(db.String(25), nullable=True)
+    ocupacion_actual = db.Column(db.String(50), nullable=True) # Ampliado por seguridad
     estado_civil = db.Column(db.String(20), nullable=True)
-    religion = db.Column(db.String(20), nullable=True)
-    nombre_acompanante = db.Column(db.String(25), nullable=True) 
-    parentesco_acompanante = db.Column(db.String(20), nullable=True)
+    religion = db.Column(db.String(30), nullable=True)
+    nombre_acompanante = db.Column(db.String(100), nullable=True) 
+    parentesco_acompanante = db.Column(db.String(50), nullable=True)
     
-    motivo_consulta = db.Column(db.String(150), nullable=True)
-    tiempo_enfermedad = db.Column(db.String(25), nullable=True)
-    sintomatologia_principal = db.Column(db.String(150), nullable=True)
+    # CAMPOS AMPLIADOS A TEXTO ILIMITADO
+    motivo_consulta = db.Column(db.Text, nullable=True)
+    tiempo_enfermedad = db.Column(db.String(50), nullable=True)
+    sintomatologia_principal = db.Column(db.Text, nullable=True)
     
-    antecedentes_personales_psicologicos = db.Column(db.String(150), nullable=True)
-    antecedentes_medicos_relevantes = db.Column(db.String(150), nullable=True)
-    antecedentes_familiares = db.Column(db.String(150), nullable=True)
-    historia_desarrollo_social = db.Column(db.String(150), nullable=True)
+    antecedentes_personales_psicologicos = db.Column(db.Text, nullable=True)
+    antecedentes_medicos_relevantes = db.Column(db.Text, nullable=True)
+    antecedentes_familiares = db.Column(db.Text, nullable=True)
+    historia_desarrollo_social = db.Column(db.Text, nullable=True)
     
     examen_mental_estado_actual = db.Column(db.JSON, nullable=True)
     diagnostico_cie10_dsm5 = db.Column(db.JSON, nullable=True)
-    tipo_diagnostico = db.Column(db.String(20), nullable=True)
+    tipo_diagnostico = db.Column(db.String(50), nullable=True)
     
-    objetivos_terapeuticos = db.Column(db.String(150), nullable=True)
-    tipo_intervencion = db.Column(db.String(30), nullable=True)
-    pronostico = db.Column(db.String(20), nullable=True)
+    objetivos_terapeuticos = db.Column(db.Text, nullable=True)
+    tipo_intervencion = db.Column(db.String(50), nullable=True)
+    pronostico = db.Column(db.String(50), nullable=True)
     
     fecha_apertura = db.Column(db.DateTime(timezone=True), default=get_peru_time)
     estado_historia = db.Column(db.Boolean, default=True)
