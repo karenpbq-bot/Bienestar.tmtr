@@ -15,6 +15,11 @@ def gestionar_citas():
     if request.method == 'POST':
         id_paciente = request.form.get('id_paciente')
         id_especialista = request.form.get('id_especialista')
+            
+        # BLINDAJE: Si es Especialista y el select HTML está deshabilitado/oculto, forzamos su ID
+        if rol == 'Especialista' and not id_especialista:
+            id_especialista = session.get('user_id')
+
         fecha_hora_str = request.form.get('fecha_hora_inicio')
         motivo = request.form.get('motivo_reserva', '')
 
