@@ -113,7 +113,7 @@ def dashboard():
         total_usuarios = UsuarioUni.query.count()
         total_especialistas = EspecialistaUni.query.count()
         citas = CitaUni.query.order_by(CitaUni.fecha_hora_inicio.asc()).all()
-        total_historias = HistoriaClinica.query.count()
+        total_historias = HistoriaClinicaPsi.query.count()
     else:
         total_pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).count()
         total_usuarios = UsuarioUni.query.filter_by(id_cliente=cliente_id).count()
