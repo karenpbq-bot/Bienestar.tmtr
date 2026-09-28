@@ -267,6 +267,14 @@
                         {{ current_user_role }}
                     </span>
                 </div>
+
+                <!-- Enlace para cambio de contraseña -->
+                <div style="margin-bottom: 0.75rem; text-align: center;">
+                    <a href="{{ url_for('auth.cambiar_password') }}" style="text-decoration: none; font-size: 0.8rem; color: #64748b; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color='#64748b'">
+                        <i class="fa-solid fa-key me-1"></i> Cambiar Contraseña
+                    </a>
+                </div>
+
                 <a href="{{ url_for('auth.logout') }}" class="btn-logout">
                     <i class="fa-solid fa-right-from-bracket me-2"></i>
                     <span>Cerrar Sesión</span>
