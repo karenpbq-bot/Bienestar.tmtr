@@ -69,15 +69,20 @@
                 {% for cita in citas %}
                 <tr>
                     <td><strong>#{{ cita.id_cita }}</strong></td>
-                    <td>{{ cita.cliente.nombres_apellidos }}</td>
-                    <td>{{ cita.especialista.nombres_apellidos }}</td>
-                    <td>{{ cita.fecha_hora.strftime('%d/%m/%Y - %H:%M hrs') }}</td>
+                    <!-- Cambiamos a cita.paciente y concatenamos nombre y apellido -->
+                    <td>{{ cita.paciente.nombre }} {{ cita.paciente.apellido }}</td>
+                    <!-- Cambiamos para mostrar el nombre y apellido del especialista -->
+                    <td>{{ cita.especialista.nombre }} {{ cita.especialista.apellido }}</td>
+                    <!-- Cambiamos a la nueva columna fecha_hora_inicio -->
+                    <td>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y - %H:%M hrs') }}</td>
                     <td>
-                        <span class="badge badge-{{ cita.estado | lower }}">
-                            {{ cita.estado }}
+                        <!-- Cambiamos a estado_cita -->
+                        <span class="badge badge-{{ cita.estado_cita | lower }}">
+                            {{ cita.estado_cita }}
                         </span>
                     </td>
-                    <td>{{ cita.motivo or 'Sin especificar' }}</td>
+                    <!-- Cambiamos a motivo_reserva -->
+                    <td>{{ cita.motivo_reserva or 'Sin especificar' }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
