@@ -97,15 +97,37 @@ def ver_historia(id_historia):
     return render_template('historia_detalle.html', historia=historia)
 
 
-@clinica_bp.route('/sesiones')
+@clinica_bp.route('/sesiones', methods=['GET', 'POST'])
 @login_required
 @role_required('Superadmin', 'Director', 'Administrador', 'Especialista')
 def listar_sesiones():
-    """Muestra el listado de sesiones de evolución y provee las historias clínicas para el modal"""
+    """Muestra el listado de sesiones de evolución, provee las historias para el modal y registra nuevas notas"""
     cliente_id = session.get('id_cliente')
     rol = session.get('user_role')
     user_id = session.get('user_id')
+
+    # Si el formulario envía los datos por POST (Guardar Evolución)
+    if request.method == 'POST':
+        id_historia = request.form.get('id_historia')
+        evolucion = request.form.get('evolucion_clinica')
+        observaciones = request.form.get('observaciones_conductuales')
+
+        if not id_historia or not evolucion:
+            flash('Debe seleccionar una historia clínica y redactar la evolución.', 'warning')
+            return redirect(url_for('clinica.listar_sesiones'))
+
+        nueva_sesion = SeguimientoPsi(
+            id_historia=id_historia,
+            id_especialista=user_id,
+            evolucion_clinica=evolucion,
+            observaciones_conductuales=observaciones
+        )
+        db.session.add(nueva_sesion)
+        db.session.commit()
+        flash('Sesión de evolución registrada exitosamente.', 'success')
+        return redirect(url_for('clinica.listar_sesiones'))
     
+    # Lógica GET para listar según el rol
     if rol == 'Superadmin':
         lista_sesiones = SeguimientoPsi.query.all()
         lista_historias = HistoriaClinicaPsi.query.all()
@@ -114,7 +136,7 @@ def listar_sesiones():
         lista_sesiones = SeguimientoPsi.query.join(HistoriaClinicaPsi).join(PacienteUni).filter(
             PacienteUni.id_cliente == cliente_id
         ).all()
-        # Historias clínicas disponibles para este especialista
+        # Historias clínicas de los pacientes atendidos o agendados por este especialista
         lista_historias = HistoriaClinicaPsi.query.join(PacienteUni).filter(
             PacienteUni.id_cliente == cliente_id,
             HistoriaClinicaPsi.id_paciente.in_(subquery_pacientes_esp)
