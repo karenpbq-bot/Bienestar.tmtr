@@ -264,9 +264,9 @@ class HistoriaClinicaPsi(db.Model):
     id_cliente = db.Column(db.Integer, db.ForeignKey('uni_clientes.id_cliente'), nullable=False)
     id_paciente = db.Column(db.Integer, db.ForeignKey('uni_pacientes.id_paciente'), nullable=False, unique=True)
     
-    nro_historia = db.Column(db.String(15), nullable=True)
-    grado_instruccion = db.Column(db.String(50), nullable=True)
-    ocupacion_actual = db.Column(db.String(50), nullable=True) # Ampliado por seguridad
+    nro_historia = db.Column(db.String(35), nullable=True)
+    grado_instruccion = db.Column(db.String(250), nullable=True)
+    ocupacion_actual = db.Column(db.String(250), nullable=True) # Ampliado por seguridad
     estado_civil = db.Column(db.String(20), nullable=True)
     religion = db.Column(db.String(30), nullable=True)
     nombre_acompanante = db.Column(db.String(100), nullable=True) 
@@ -274,7 +274,7 @@ class HistoriaClinicaPsi(db.Model):
     
     # CAMPOS AMPLIADOS A TEXTO ILIMITADO
     motivo_consulta = db.Column(db.Text, nullable=True)
-    tiempo_enfermedad = db.Column(db.String(50), nullable=True)
+    tiempo_enfermedad = db.Column(db.String(350), nullable=True)
     sintomatologia_principal = db.Column(db.Text, nullable=True)
     
     antecedentes_personales_psicologicos = db.Column(db.Text, nullable=True)
@@ -284,11 +284,11 @@ class HistoriaClinicaPsi(db.Model):
     
     examen_mental_estado_actual = db.Column(db.JSON, nullable=True)
     diagnostico_cie10_dsm5 = db.Column(db.JSON, nullable=True)
-    tipo_diagnostico = db.Column(db.String(50), nullable=True)
+    tipo_diagnostico = db.Column(db.String(350), nullable=True)
     
     objetivos_terapeuticos = db.Column(db.Text, nullable=True)
-    tipo_intervencion = db.Column(db.String(50), nullable=True)
-    pronostico = db.Column(db.String(50), nullable=True)
+    tipo_intervencion = db.Column(db.String(350), nullable=True)
+    pronostico = db.Column(db.String(250), nullable=True)
     
     fecha_apertura = db.Column(db.DateTime(timezone=True), default=get_peru_time)
     estado_historia = db.Column(db.Boolean, default=True)
@@ -305,7 +305,7 @@ class PermisoHistoriaPsi(db.Model):
     id_historia = db.Column(db.Integer, db.ForeignKey('psi_historias_clinicas.id_historia'), nullable=False)
     id_especialista = db.Column(db.Integer, db.ForeignKey('uni_especialistas.id_especialista'), nullable=False)
     estado_acceso = db.Column(db.Boolean, default=True)
-    origen_permiso = db.Column(db.String(200))
+    origen_permiso = db.Column(db.String(500))
     fecha_otorgamiento = db.Column(db.DateTime(timezone=True), default=get_peru_time)
 
     # Relaciones para navegar fácilmente
@@ -325,13 +325,13 @@ class SeguimientoPsi(db.Model):
     numero_sesion = db.Column(db.Integer, nullable=True)
     fecha_sesion = db.Column(db.DateTime(timezone=True), default=get_peru_time)
     
-    nota_subjetiva = db.Column(db.String(150), nullable=True)
-    nota_objetiva = db.Column(db.String(150), nullable=True)
-    apreciacion_clinica = db.Column(db.String(150), nullable=True)
-    plan_tareas = db.Column(db.String(150), nullable=True)
+    nota_subjetiva = db.Column(db.String(500), nullable=True)
+    nota_objetiva = db.Column(db.String(500), nullable=True)
+    apreciacion_clinica = db.Column(db.String(500), nullable=True)
+    plan_tareas = db.Column(db.String(500), nullable=True)
     
-    pruebas_aplicadas = db.Column(db.String(150), nullable=True)
-    evaluacion_riesgo = db.Column(db.String(25), nullable=True)
+    pruebas_aplicadas = db.Column(db.String(500), nullable=True)
+    evaluacion_riesgo = db.Column(db.String(50), nullable=True)
     proxima_cita_recomendada = db.Column(db.Date, nullable=True)
     
     firma_digital_cerrada = db.Column(db.Boolean, default=False)
