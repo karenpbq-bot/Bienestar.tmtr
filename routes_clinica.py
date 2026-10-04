@@ -101,16 +101,30 @@ def ver_historia(id_historia):
 @login_required
 @role_required('Superadmin', 'Director', 'Administrador', 'Especialista')
 def listar_sesiones():
-    """Muestra el listado de sesiones de evolución registradas (SOAP)"""
+    """Muestra el listado de sesiones de evolución y provee las historias clínicas para el modal"""
     cliente_id = session.get('id_cliente')
     rol = session.get('user_role')
+    user_id = session.get('user_id')
     
     if rol == 'Superadmin':
         lista_sesiones = SeguimientoPsi.query.all()
+        lista_historias = HistoriaClinicaPsi.query.all()
+    elif rol == 'Especialista':
+        subquery_pacientes_esp = db.session.query(CitaUni.id_paciente).filter(CitaUni.id_especialista == user_id).subquery()
+        lista_sesiones = SeguimientoPsi.query.join(HistoriaClinicaPsi).join(PacienteUni).filter(
+            PacienteUni.id_cliente == cliente_id
+        ).all()
+        # Historias clínicas disponibles para este especialista
+        lista_historias = HistoriaClinicaPsi.query.join(PacienteUni).filter(
+            PacienteUni.id_cliente == cliente_id,
+            HistoriaClinicaPsi.id_paciente.in_(subquery_pacientes_esp)
+        ).all()
     else:
+        # Administradores y Directores
         lista_sesiones = SeguimientoPsi.query.join(HistoriaClinicaPsi).join(PacienteUni).filter(PacienteUni.id_cliente == cliente_id).all()
+        lista_historias = HistoriaClinicaPsi.query.join(PacienteUni).filter(PacienteUni.id_cliente == cliente_id).all()
 
-    return render_template('sesiones.html', sesiones=lista_sesiones)
+    return render_template('sesiones.html', sesiones=lista_sesiones, historias=lista_historias)
 
 
 @clinica_bp.route('/citas/<int:id_cita>/atender', methods=['POST'])
