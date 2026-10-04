@@ -9,13 +9,22 @@ clinica_bp = Blueprint('clinica', __name__)
 @login_required
 @role_required('Superadmin', 'Director', 'Administrador', 'Especialista', 'Recepcionista')
 def listar_historias():
-    """Lista las historias clínicas aplicando el aislamiento multi-tenant"""
+    """Lista las historias clínicas filtrando según el rol del usuario"""
     cliente_id = session.get('id_cliente')
     rol = session.get('user_role')
+    user_id = session.get('user_id')
 
     if rol == 'Superadmin':
         lista_historias = HistoriaClinicaPsi.query.all()
+    elif rol == 'Especialista':
+        # El especialista solo ve las historias de los pacientes con los que tiene citas agendadas o atendidas
+        subquery_pacientes_esp = db.session.query(CitaUni.id_paciente).filter(CitaUni.id_especialista == user_id).subquery()
+        lista_historias = HistoriaClinicaPsi.query.join(PacienteUni).filter(
+            PacienteUni.id_cliente == cliente_id,
+            HistoriaClinicaPsi.id_paciente.in_(subquery_pacientes_esp)
+        ).all()
     else:
+        # Administradores, Directores y Recepcionistas ven todas las de la empresa cliente
         lista_historias = HistoriaClinicaPsi.query.join(PacienteUni).filter(PacienteUni.id_cliente == cliente_id).all()
 
     return render_template('historias.html', historias=lista_historias)
