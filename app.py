@@ -8,22 +8,14 @@ from models import (
     HistoriaClinicaPsi, SeguimientoPsi, ModuloSistema, ClienteModulo,
     PerfilPersonalizado, ClientePerfilAsignado
 )
-from routes_perfil import perfil_bp
-from routes_perfiles_superadmin import perfiles_superadmin_bp
-from routes_clientes import clientes_bp
 
 # 1. ÚNICA CREACIÓN DE LA INSTANCIA DE APP
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Registrar todos los Blueprints del sistema
-app.register_blueprint(perfil_bp)
-app.register_blueprint(perfiles_superadmin_bp)
-app.register_blueprint(clientes_bp)
-
-db.init_app(app)
-
-# --- REGISTRO DE BLUEPRINTS (MÓDULOS MODULARES) ---
+# --- REGISTRO ÚNICO DE TODOS LOS BLUEPRINTS DEL SISTEMA ---
+from routes_perfil import perfil_bp
+from routes_perfiles_superadmin import perfiles_superadmin_bp
 from routes_auth import auth_bp
 from routes_clientes import clientes_bp
 from routes_usuarios import usuarios_bp
@@ -31,12 +23,16 @@ from routes_agenda import agenda_bp
 from routes_pacientes import pacientes_bp
 from routes_clinica import clinica_bp
 
+app.register_blueprint(perfil_bp)
+app.register_blueprint(perfiles_superadmin_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(clientes_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(agenda_bp)
 app.register_blueprint(pacientes_bp)
 app.register_blueprint(clinica_bp)
+
+db.init_app(app)
 
 # --- CREACIÓN AUTOMÁTICA DEL SUPERADMIN / ADMIN PRINCIPAL ---
 with app.app_context():
@@ -127,11 +123,9 @@ def dashboard():
         total_historias = HistoriaClinicaPsi.query.count()
         
     elif rol == 'Paciente':
-        # Buscamos al paciente vinculado mediante el id_usuario de la sesión y la clínica activa
         paciente_obj = PacienteUni.query.filter_by(id_cliente=cliente_id, id_usuario=user_id).first()
         id_real_paciente = paciente_obj.id_paciente if paciente_obj else 0
         
-        # El paciente solo ve sus propias citas en el dashboard
         citas = CitaUni.query.filter_by(id_cliente=cliente_id, id_paciente=id_real_paciente).order_by(CitaUni.fecha_hora_inicio.desc()).all()
         
         total_pacientes = 1
@@ -144,7 +138,6 @@ def dashboard():
         total_usuarios = UsuarioUni.query.filter_by(id_cliente=cliente_id).count()
         total_especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).count()
         
-        # Obtenemos el ID real del especialista (uni_especialistas) asociado al usuario logueado
         especialista_obj = EspecialistaUni.query.filter_by(id_cliente=cliente_id, id_usuario=user_id).first()
         if not especialista_obj:
             usuario_actual = UsuarioUni.query.get(user_id)
@@ -153,7 +146,6 @@ def dashboard():
         
         esp_id_real = especialista_obj.id_especialista if especialista_obj else user_id
 
-        # Filtro estricto de citas por el ID real del especialista
         citas = CitaUni.query.filter_by(
             id_cliente=cliente_id, 
             id_especialista=esp_id_real
@@ -162,7 +154,6 @@ def dashboard():
         total_historias = HistoriaClinicaPsi.query.join(PacienteUni).filter(PacienteUni.id_cliente == cliente_id).count()
         
     else:
-        # Administrador, Director, Recepcionista (Ven todo lo de su sede)
         total_pacientes = PacienteUni.query.filter_by(id_cliente=cliente_id).count()
         total_usuarios = UsuarioUni.query.filter_by(id_cliente=cliente_id).count()
         total_especialistas = EspecialistaUni.query.filter_by(id_cliente=cliente_id).count()
