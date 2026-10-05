@@ -217,24 +217,26 @@
                 </li>
                 {% endif %}
 
-                <!-- Módulo de Agenda de Citas (RESTRINGIDO: Solo Admin, Director, Recepcionista y Superadmin) -->
-                {% if current_user_role in ['Superadmin', 'Administrador', 'Director', 'Recepcionista'] %}
-                <li class="nav-item {% if request.endpoint in ['agenda.gestionar_citas', 'agenda.agendar_cita'] %}active{% endif %}">
-                    <a href="{{ url_for('agenda.gestionar_citas') }}">
-                        <i class="fa-solid fa-calendar-check"></i>
-                        <span>Agenda de Citas</span>
-                    </a>
-                </li>
-                {% endif %}
+                <!-- Módulo de Agenda de Citas (Sujeto al módulo 'agenda' o Superadmin) -->
+                {% if current_user_role == 'Superadmin' or 'agenda' in session.get('modulos_activos', []) %}
+                    {% if current_user_role in ['Superadmin', 'Administrador', 'Director', 'Recepcionista'] %}
+                    <li class="nav-item {% if request.endpoint in ['agenda.gestionar_citas', 'agenda.agendar_cita'] %}active{% endif %}">
+                        <a href="{{ url_for('agenda.gestionar_citas') }}">
+                            <i class="fa-solid fa-calendar-check"></i>
+                            <span>Agenda de Citas</span>
+                        </a>
+                    </li>
+                    {% endif %}
 
-                <!-- Módulo de Disponibilidad Horaria (RESTRINGIDO: Solo Admin, Director, Recepcionista y Superadmin) -->
-                {% if current_user_role in ['Superadmin', 'Administrador', 'Director', 'Recepcionista'] %}
-                <li class="nav-item {% if request.endpoint == 'agenda.gestionar_disponibilidad' %}active{% endif %}">
-                    <a href="{{ url_for('agenda.gestionar_disponibilidad') }}">
-                        <i class="fa-solid fa-business-time"></i>
-                        <span>Disponibilidad Horaria</span>
-                    </a>
-                </li>
+                    <!-- Módulo de Disponibilidad Horaria -->
+                    {% if current_user_role in ['Superadmin', 'Administrador', 'Director', 'Recepcionista'] %}
+                    <li class="nav-item {% if request.endpoint == 'agenda.gestionar_disponibilidad' %}active{% endif %}">
+                        <a href="{{ url_for('agenda.gestionar_disponibilidad') }}">
+                            <i class="fa-solid fa-business-time"></i>
+                            <span>Disponibilidad Horaria</span>
+                        </a>
+                    </li>
+                    {% endif %}
                 {% endif %}
 
                 <!-- Módulo de Mi Perfil Profesional (Exclusivo para Especialistas) -->
@@ -256,25 +258,26 @@
                     </a>
                 </li>
                 {% endif %}
-                           
-                <!-- Módulo de Historias Clínicas (Excluido para Pacientes) -->
-                {% if current_user_role == 'Superadmin' or current_user_role in ['Administrador', 'Especialista'] %}
-                <li class="nav-item {% if request.endpoint in ['clinica.listar_historias', 'clinica.crear_historia', 'clinica.ver_historia'] %}active{% endif %}">
-                    <a href="{{ url_for('clinica.listar_historias') }}">
-                        <i class="fa-solid fa-file-medical"></i>
-                        <span>Historias Clínicas</span>
-                    </a>
-                </li>
-                {% endif %}
+                    
+                <!-- Módulo de Historias Clínicas y Evolución (Sujeto al módulo 'psicologia' o Superadmin) -->
+                {% if current_user_role == 'Superadmin' or 'psicologia' in session.get('modulos_activos', []) %}
+                    {% if current_user_role == 'Superadmin' or current_user_role in ['Administrador', 'Especialista'] %}
+                    <li class="nav-item {% if request.endpoint in ['clinica.listar_historias', 'clinica.crear_historia', 'clinica.ver_historia'] %}active{% endif %}">
+                        <a href="{{ url_for('clinica.listar_historias') }}">
+                            <i class="fa-solid fa-file-medical"></i>
+                            <span>Historias Clínicas</span>
+                        </a>
+                    </li>
+                    {% endif %}
 
-                <!-- Módulo de Sesiones de Evolución (Excluido para Pacientes) -->
-                {% if current_user_role == 'Superadmin' or current_user_role in ['Director', 'Administrador', 'Especialista'] %}
-                <li class="nav-item {% if request.endpoint == 'clinica.listar_sesiones' %}active{% endif %}">
-                    <a href="{{ url_for('clinica.listar_sesiones') }}">
-                        <i class="fa-solid fa-notes-medical"></i>
-                        <span>Sesiones Evolución</span>
-                    </a>
-                </li>
+                    {% if current_user_role == 'Superadmin' or current_user_role in ['Director', 'Administrador', 'Especialista'] %}
+                    <li class="nav-item {% if request.endpoint == 'clinica.listar_sesiones' %}active{% endif %}">
+                        <a href="{{ url_for('clinica.listar_sesiones') }}">
+                            <i class="fa-solid fa-notes-medical"></i>
+                            <span>Sesiones Evolución</span>
+                        </a>
+                    </li>
+                    {% endif %}
                 {% endif %}
             </ul>
 
