@@ -350,3 +350,35 @@ class Codigo7D(db.Model):
 
     def __repr__(self):
         return f"<Codigo7D {self.codigo} ({self.rol_destino})>"
+
+# ===========================================================================
+# 4. CONTROL DE MÓDULOS Y ESPECIALIDADES POR CLIENTE (SaaS Multi-Tenant)
+# ===========================================================================
+
+class ModuloSistema(db.Model):
+    """Catálogo maestro de módulos disponibles en la plataforma (Psicología, Odontología, Agenda, etc.)"""
+    __tablename__ = 'uni_modulos'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    codigo_modulo = db.Column(db.String(50), unique=True, nullable=False)
+    nombre_modulo = db.Column(db.String(100), nullable=False)
+    descripcion = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f"<ModuloSistema {self.nombre_modulo} ({self.codigo_modulo})>"
+
+
+class ClienteModulo(db.Model):
+    """Tabla relacional para asignar qué módulos contratados tiene cada clínica/empresa cliente"""
+    __tablename__ = 'uni_clientes_modulos'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_cliente = db.Column(db.Integer, db.ForeignKey('uni_clientes.id_cliente', ondelete='CASCADE'), nullable=False)
+    codigo_modulo = db.Column(db.String(50), db.ForeignKey('uni_modulos.codigo_modulo', ondelete='CASCADE'), nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint('id_cliente', 'codigo_modulo', name='unique_cliente_modulo'),
+    )
+
+    def __repr__(self):
+        return f"<ClienteModulo Cliente:{self.id_cliente} Módulo:{self.codigo_modulo}>"
