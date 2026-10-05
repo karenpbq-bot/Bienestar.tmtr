@@ -5,14 +5,22 @@ from config import Config
 from models import (
     db, get_peru_time, ClienteEmpresa, UsuarioUni, EspecialistaUni, 
     PacienteUni, DisponibilidadUni, CitaUni, ReprogramacionUni, 
-    HistoriaClinicaPsi, SeguimientoPsi
+    HistoriaClinicaPsi, SeguimientoPsi, ModuloSistema, ClienteModulo,
+    PerfilPersonalizado, ClientePerfilAsignado
 )
 from routes_perfil import perfil_bp
+from routes_perfiles_superadmin import perfiles_superadmin_bp
+from routes_clientes import clientes_bp
 
 # 1. ÚNICA CREACIÓN DE LA INSTANCIA DE APP
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Registrar todos los Blueprints del sistema
 app.register_blueprint(perfil_bp)
+app.register_blueprint(perfiles_superadmin_bp)
+app.register_blueprint(clientes_bp)
+
 db.init_app(app)
 
 # --- REGISTRO DE BLUEPRINTS (MÓDULOS MODULARES) ---
