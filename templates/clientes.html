@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Gestión de Empresas Cliente - Renovatia{% endblock %}
+{% block title %}Gestión de Empresas Cliente - Bienestar App{% endblock %}
 {% block content %}
 <div class="container-fluid py-4 px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-dark mb-1">Gestión de Empresas Cliente</h2>
-            <p class="text-muted small mb-0">Administración de clínicas, consultorios y organizaciones multi-tenant</p>
+            <p class="text-muted small mb-0">Administración de clínicas, consultorios y asignación de módulos multi-tenant</p>
         </div>
-        <button type="button" class="btn btn-primary shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#modalNuevoCliente">
+        <button type="button" class="btn btn-primary shadow-sm px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalNuevoCliente">
             <i class="fa-solid fa-building-user me-2"></i> Nueva Empresa
         </button>
     </div>
@@ -30,7 +30,7 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="input-group shadow-sm">
                         <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" id="buscadorUniversal" class="form-control border-start-0 ps-0" placeholder="Buscar por Nombre, RUC, Código 5D...">
+                        <input type="text" id="buscadorUniversal" class="form-control border-start-0 ps-0" placeholder="Buscar por Nombre, RUC, Código...">
                     </div>
                 </div>
             </div>
@@ -43,8 +43,9 @@
                                 <tr>
                                     <th class="py-3 ps-4">Código (5D)</th>
                                     <th class="py-3">Marca / RUC</th>
+                                    <th class="py-3">Módulos Habilitados</th>
                                     <th class="py-3">Plan y Tarifa</th>
-                                    <th class="py-3">Vigencia / Alerta</th>
+                                    <th class="py-3">Vigencia</th>
                                     <th class="py-3">Estado</th>
                                     <th class="py-3 text-end pe-4">Acciones</th>
                                 </tr>
@@ -57,26 +58,31 @@
                                     </td>
                                     <td>
                                         <div class="fw-bold text-dark search-target">{{ c.nombre_marca }}</div>
-                                        <small class="text-muted search-target">RUC: {{ c.ruc or 'N/A' }} | {{ c.nombre_empresa or '' }}</small>
+                                        <small class="text-muted search-target">RUC: {{ c.ruc or 'N/A' }}</small>
+                                    </td>
+                                    <td>
+                                        {% if c.modulos_activos %}
+                                            {% for mod in c.modulos_activos %}
+                                                <span class="badge bg-purple bg-opacity-10 text-purple border border-purple px-2 py-1 me-1 small" style="color: #7c3aed; background-color: #f3e8ff;">{{ mod }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted small">Sin módulos</span>
+                                        {% endif %}
                                     </td>
                                     <td>
                                         <div class="fw-semibold text-primary search-target">{{ c.tipo_plan or 'Sin Plan' }}</div>
                                         <small class="text-muted">S/. {{ "%.2f"|format(c.costo_plan or 0.0) }}</small>
                                     </td>
                                     <td>
-                                        <!-- Sistema de Alertas de Vencimiento -->
                                         {% if c.vigencia_plan %}
                                             {% if hoy and c.vigencia_plan < hoy %}
-                                                <div class="text-danger fw-bold"><i class="fa-solid fa-circle-exclamation me-1"></i> {{ c.vigencia_plan.strftime('%d/%m/%Y') }} (Vencido)</div>
-                                            {% elif hoy and (c.vigencia_plan - hoy).days <= 7 %}
-                                                <div class="text-warning fw-bold"><i class="fa-solid fa-triangle-exclamation me-1"></i> {{ c.vigencia_plan.strftime('%d/%m/%Y') }} (Próximo)</div>
+                                                <div class="text-danger fw-bold small"><i class="fa-solid fa-circle-exclamation me-1"></i> {{ c.vigencia_plan.strftime('%d/%m/%Y') }}</div>
                                             {% else %}
-                                                <div class="text-success"><i class="fa-solid fa-calendar-check me-1"></i> {{ c.vigencia_plan.strftime('%d/%m/%Y') }}</div>
+                                                <div class="text-success small"><i class="fa-solid fa-calendar-check me-1"></i> {{ c.vigencia_plan.strftime('%d/%m/%Y') }}</div>
                                             {% endif %}
                                         {% else %}
-                                            <div class="text-muted">Indefinida</div>
+                                            <div class="text-muted small">Indefinida</div>
                                         {% endif %}
-                                        <small class="text-muted"><i class="fa-solid fa-credit-card me-1"></i>{{ c.modo_pago or 'No especificado' }}</small>
                                     </td>
                                     <td>
                                         {% if c.estado_suscripcion == 'Activo' or not c.estado_suscripcion %}
@@ -93,9 +99,9 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
+                                    <td colspan="7" class="text-center py-5 text-muted">
                                         <i class="fa-solid fa-building-circle-exclamation fs-2 mb-2 d-block"></i>
-                                        No hay empresas cliente registradas en el sistema.
+                                        No hay empresas cliente registradas.
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -106,12 +112,12 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 2: Panel de Administración y Acciones Masivas -->
+        <!-- PESTAÑA 2: Panel de Administración Masiva -->
         <div class="tab-pane fade" id="admin" role="tabpanel">
             <form method="POST" action="{{ url_for('clientes.acciones_masivas') }}">
                 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-light">
                     <div class="card-body p-4">
-                        <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-gears me-2 text-primary"></i>Acciones en Bloque para las Cuentas Seleccionadas</h6>
+                        <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-gears me-2 text-primary"></i>Acciones en Bloque</h6>
                         <div class="row g-3 align-items-end">
                             <div class="col-md-3">
                                 <label class="form-label small fw-semibold">Cambiar Estado:</label>
@@ -123,47 +129,15 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label small fw-semibold">Actualizar Vigencia Plan:</label>
+                                <label class="form-label small fw-semibold">Actualizar Vigencia:</label>
                                 <input type="date" class="form-control shadow-sm" name="nueva_vigencia">
                             </div>
                             <div class="col-md-3">
-                                <button type="submit" class="btn btn-danger shadow-sm w-100 fw-bold" onclick="return confirm('¿Confirma aplicar estos cambios a las empresas seleccionadas?');">
+                                <button type="submit" class="btn btn-danger shadow-sm w-100 fw-bold" onclick="return confirm('¿Confirma aplicar estos cambios?');">
                                     Aplicar Masivo <i class="fa-solid fa-check ms-1"></i>
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-dark text-white fs-7 text-uppercase">
-                                <tr>
-                                    <th class="py-3 ps-4" style="width: 50px;">
-                                        <input class="form-check-input mt-0" type="checkbox" id="selectAll">
-                                    </th>
-                                    <th class="py-3">Código & Empresa</th>
-                                    <th class="py-3">Estado Actual</th>
-                                    <th class="py-3">Vencimiento Vigente</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for c in clientes %}
-                                <tr>
-                                    <td class="ps-4">
-                                        <input class="form-check-input item-checkbox" type="checkbox" name="ids_clientes" value="{{ c.id_cliente }}">
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary font-monospace me-1">{{ c.codigo_invitacion_5d }}</span>
-                                        <span class="fw-bold text-dark">{{ c.nombre_marca }}</span>
-                                    </td>
-                                    <td>{{ c.estado_suscripcion or 'Activo' }}</td>
-                                    <td>{{ c.vigencia_plan.strftime('%d/%m/%Y') if c.vigencia_plan else 'Indefinida' }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </form>
@@ -191,7 +165,7 @@
                             <input type="text" class="form-control" name="ruc" placeholder="Ej. 20600000002">
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label fw-semibold small">Razón Social / Nombre de Empresa</label>
+                            <label class="form-label fw-semibold small">Razón Social</label>
                             <input type="text" class="form-control" name="nombre_empresa" placeholder="Ej. Servicios Médicos S.A.C.">
                         </div>
                         <div class="col-md-12">
@@ -199,22 +173,42 @@
                             <input type="text" class="form-control" name="direccion" placeholder="Av. Ejercito 456, Arequipa">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Teléfono de Contacto</label>
+                            <label class="form-label fw-semibold small">Teléfono</label>
                             <input type="text" class="form-control" name="telefono" placeholder="+51 900000000">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Correo Electrónico de Contacto</label>
+                            <label class="form-label fw-semibold small">Correo de Contacto</label>
                             <input type="email" class="form-control" name="correo_contacto" placeholder="contacto@clinica.com">
                         </div>
+                        
+                        <hr class="my-2">
+                        <h6 class="fw-bold text-primary mb-0">Asignación de Módulos y Especialidades *</h6>
+                        <div class="col-md-12">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="row g-2">
+                                    {% for mod in modulos_disponibles %}
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="modulos" value="{{ mod.codigo_modulo }}" id="mod_nuevo_{{ mod.codigo_modulo }}">
+                                            <label class="form-check-label small fw-semibold text-dark" for="mod_nuevo_{{ mod.codigo_modulo }}">
+                                                {{ mod.nombre_modulo }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
                         <hr class="my-2">
                         <h6 class="fw-bold text-primary mb-0">Detalles del Plan y Suscripción</h6>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Tipo de Plan</label>
-                            <input type="text" class="form-control" name="tipo_plan" placeholder="Ej. Plan Profesional Anual">
+                            <input type="text" class="form-control" name="tipo_plan" placeholder="Ej. Plan Anual">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Costo / Tarifa (S/.)</label>
-                            <input type="number" step="0.01" class="form-control" name="costo_plan" placeholder="Ej. 350.00">
+                            <input type="number" step="0.01" class="form-control" name="costo_plan" placeholder="350.00">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Vigencia del Plan</label>
@@ -222,7 +216,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Modo de Pago</label>
-                            <input type="text" class="form-control" name="modo_pago" placeholder="Ej. Transferencia BCP / Yape">
+                            <input type="text" class="form-control" name="modo_pago" placeholder="Transferencia / Yape">
                         </div>
                     </div>
                 </div>
@@ -264,13 +258,33 @@
                             <input type="text" class="form-control" name="direccion" value="{{ c.direccion or '' }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Teléfono de Contacto</label>
+                            <label class="form-label fw-semibold small">Teléfono</label>
                             <input type="text" class="form-control" name="telefono" value="{{ c.telefono or '' }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold small">Correo Electrónico de Contacto</label>
+                            <label class="form-label fw-semibold small">Correo de Contacto</label>
                             <input type="email" class="form-control" name="correo_contacto" value="{{ c.correo_contacto or '' }}">
                         </div>
+
+                        <hr class="my-2">
+                        <h6 class="fw-bold text-primary mb-0">Módulos Habilitados</h6>
+                        <div class="col-md-12">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="row g-2">
+                                    {% for mod in modulos_disponibles %}
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="modulos" value="{{ mod.codigo_modulo }}" id="mod_{{ c.id_cliente }}_{{ mod.codigo_modulo }}" {% if mod.codigo_modulo in c.modulos_activos %}checked{% endif %}>
+                                            <label class="form-check-label small fw-semibold text-dark" for="mod_{{ c.id_cliente }}_{{ mod.codigo_modulo }}">
+                                                {{ mod.nombre_modulo }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
                         <hr class="my-2">
                         <h6 class="fw-bold text-primary mb-0">Detalles del Plan y Suscripción</h6>
                         <div class="col-md-6">
@@ -309,29 +323,17 @@
 </div>
 {% endfor %}
 
-<!-- Script para Filtrado en Tiempo Real y Checkboxes -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // 1. Buscador universal instantáneo
         const buscador = document.getElementById('buscadorUniversal');
         if(buscador) {
             buscador.addEventListener('keyup', function() {
                 const term = this.value.toLowerCase();
                 const filas = document.querySelectorAll('.fila-cliente');
-                
                 filas.forEach(fila => {
                     const contenido = Array.from(fila.querySelectorAll('.search-target')).map(el => el.textContent.toLowerCase()).join(' ');
                     fila.style.display = contenido.includes(term) ? '' : 'none';
                 });
-            });
-        }
-
-        // 2. Seleccionar todos los checkboxes del panel masivo
-        const selectAll = document.getElementById('selectAll');
-        if(selectAll) {
-            selectAll.addEventListener('change', function() {
-                const checkboxes = document.querySelectorAll('.item-checkbox');
-                checkboxes.forEach(cb => cb.checked = selectAll.checked);
             });
         }
     });
