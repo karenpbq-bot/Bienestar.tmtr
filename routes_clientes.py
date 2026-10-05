@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from models import db, ClienteEmpresa, ModuloSistema, ClienteModulo  # Asegúrate de importar tus modelos o tablas asociadas
+from models import db, ClienteEmpresa, ModuloSistema, ClienteModulo, ClientePerfilAsignado
 from functools import wraps
 from datetime import datetime
 
@@ -43,8 +43,9 @@ def gestionar_clientes():
         vigencia_plan = request.form.get('vigencia_plan')
         modo_pago = request.form.get('modo_pago', '').strip()
 
-        # Módulos seleccionados por checkbox
+        # Módulos y perfiles seleccionados por checkbox
         modulos_seleccionados = request.form.getlist('modulos')
+        perfiles_seleccionados = request.form.getlist('perfiles_asignados') # <-- NUEVO
 
         if not nombre_marca:
             flash('El nombre de la marca o clínica es obligatorio.', 'warning')
@@ -69,22 +70,33 @@ def gestionar_clientes():
             for cod_mod in modulos_seleccionados:
                 nuevo_mod = ClienteModulo(id_cliente=nuevo_cliente.id_cliente, codigo_modulo=cod_mod)
                 db.session.add(nuevo_mod)
+
+            # Guardar los perfiles asignados en uni_clientes_perfiles_asignados <-- NUEVO
+            for cod_perf in perfiles_seleccionados:
+                nuevo_perf = ClientePerfilAsignado(id_cliente=nuevo_cliente.id_cliente, codigo_perfil=cod_perf, estado=True)
+                db.session.add(nuevo_perf)
+
             db.session.commit()
 
-            flash(f'Empresa cliente "{nombre_marca}" registrada exitosamente con sus módulos.', 'success')
+            flash(f'Empresa cliente "{nombre_marca}" registrada exitosamente con sus módulos y perfiles.', 'success')
         
         return redirect(url_for('clientes.gestionar_clientes'))
 
     clientes = ClienteEmpresa.query.order_by(ClienteEmpresa.id_cliente.desc()).all()
     modulos_disponibles = ModuloSistema.query.all()
     
-    # Mapear los módulos activos de cada cliente para pasarlos a la vista
+    # Importar aquí o arriba PerfilPersonalizado para enviarlo a la vista del modal de clientes
+    from models import PerfilPersonalizado
+    perfiles_disponibles = PerfilPersonalizado.query.all() # <-- NUEVO
+    
+    # Mapear los módulos y perfiles activos de cada cliente para pasarlos a la vista
     for c in clientes:
         c.modulos_activos = [m.codigo_modulo for m in ClienteModulo.query.filter_by(id_cliente=c.id_cliente).all()]
+        c.perfiles_activos = [p.codigo_perfil for p in ClientePerfilAsignado.query.filter_by(id_cliente=c.id_cliente, estado=True).all()] # <-- NUEVO
 
     hoy = datetime.today().date()
     
-    return render_template('clientes.html', clientes=clientes, modulos_disponibles=modulos_disponibles, hoy=hoy)
+    return render_template('clientes.html', clientes=clientes, modulos_disponibles=modulos_disponibles, perfiles_disponibles=perfiles_disponibles, hoy=hoy)
 
 @clientes_bp.route('/clientes/editar/<int:id_cliente>', methods=['POST'])
 @login_required
@@ -117,8 +129,15 @@ def editar_cliente(id_cliente):
         nuevo_mod = ClienteModulo(id_cliente=id_cliente, codigo_modulo=cod_mod)
         db.session.add(nuevo_mod)
 
+    # Actualizar perfiles asignados: Borramos los anteriores y reinsertamos los seleccionados <-- NUEVO
+    perfiles_seleccionados = request.form.getlist('perfiles_asignados')
+    ClientePerfilAsignado.query.filter_by(id_cliente=id_cliente).delete()
+    for cod_perf in perfiles_seleccionados:
+        nuevo_perf = ClientePerfilAsignado(id_cliente=id_cliente, codigo_perfil=cod_perf, estado=True)
+        db.session.add(nuevo_perf)
+
     db.session.commit()
-    flash(f'Datos y módulos de la empresa "{cliente.nombre_marca}" actualizados correctamente.', 'success')
+    flash(f'Datos, módulos y perfiles de la empresa "{cliente.nombre_marca}" actualizados correctamente.', 'success')
     return redirect(url_for('clientes.gestionar_clientes'))
 
 @clientes_bp.route('/clientes/acciones-masivas', methods=['POST'])
