@@ -270,11 +270,11 @@
                     </li>
                     {% endif %}
 
-                    {% if current_user_role == 'Superadmin' or current_user_role in ['Director', 'Administrador', 'Especialista'] %}
-                    <li class="nav-item {% if request.endpoint == 'clinica.listar_sesiones' %}active{% endif %}">
-                        <a href="{{ url_for('clinica.listar_sesiones') }}">
-                            <i class="fa-solid fa-notes-medical"></i>
-                            <span>Sesiones Evolución</span>
+                    {% if current_user_role == 'Superadmin' %}
+                    <li class="nav-item {% if request.endpoint == 'perfiles_superadmin.gestionar_perfiles' %}active{% endif %}">
+                        <a href="{{ url_for('perfiles_superadmin.gestionar_perfiles') }}">
+                            <i class="fa-solid fa-id-card-clip"></i>
+                            <span>Gestión de Perfiles</span>
                         </a>
                     </li>
                     {% endif %}
