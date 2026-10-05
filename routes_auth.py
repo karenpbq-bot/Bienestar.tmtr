@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from models import db, UsuarioUni, PacienteUni, EspecialistaUni, ClienteEmpresa
+from models import db, UsuarioUni, PacienteUni, EspecialistaUni, ClienteEmpresa, ClienteModulo
 from functools import wraps
 
 auth_bp = Blueprint('auth', __name__)
@@ -43,7 +43,7 @@ def role_required(*roles):
 def preparar_sesion_usuario(usuario_o_entidad, rol_asignado, id_cliente):
     """
     Función genérica y escalable: registra los datos clave del usuario y 
-    busca automáticamente el logotipo de la empresa para cualquier rol actual o futuro.
+    busca automáticamente el logotipo y los módulos activos de la empresa cliente.
     """
     session['user_role'] = rol_asignado
     session['id_cliente'] = id_cliente
@@ -54,17 +54,21 @@ def preparar_sesion_usuario(usuario_o_entidad, rol_asignado, id_cliente):
         if cliente and cliente.nombre_marca:
             session['codigo_empresa'] = cliente.codigo_invitacion_5d
             session['nombre_marca_cliente'] = cliente.nombre_marca
-            # Limpiamos el nombre para que coincida exactamente con el archivo .png (minúsculas y sin espacios)
             session['codigo_empresa_logo'] = cliente.nombre_marca.lower().replace(" ", "")
         else:
             session.pop('codigo_empresa', None)
             session.pop('nombre_marca_cliente', None)
             session.pop('codigo_empresa_logo', None)
+
+        # CARGAR MÓDULOS ACTIVOS DEL CLIENTE PARA EL MULTI-TENANT
+        modulos_contratados = ClienteModulo.query.filter_by(id_cliente=id_cliente).all()
+        session['modulos_activos'] = [m.codigo_modulo for m in modulos_contratados]
     else:
-        # Si es un Superadmin global sin empresa asignada, limpiamos los rastros de marca blanca
+        # Si es un Superadmin global sin empresa asignada, limpiamos marca y le damos acceso total
         session.pop('codigo_empresa', None)
         session.pop('nombre_marca_cliente', None)
         session.pop('codigo_empresa_logo', None)
+        session['modulos_activos'] = ['psicologia', 'odontologia', 'agenda']
 
 
 # ===========================================================================
