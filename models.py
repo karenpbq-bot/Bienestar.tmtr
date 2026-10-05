@@ -382,3 +382,38 @@ class ClienteModulo(db.Model):
 
     def __repr__(self):
         return f"<ClienteModulo Cliente:{self.id_cliente} Módulo:{self.codigo_modulo}>"
+
+# ===========================================================================
+# 5. GESTIÓN DE PERFILES PERSONALIZADOS Y ASIGNACIÓN POR CLIENTE
+# ===========================================================================
+
+class PerfilPersonalizado(db.Model):
+    """Catálogo maestro global de perfiles creado por el Superadmin (ej. Director Médico, Asistente, etc.)"""
+    __tablename__ = 'uni_perfiles_personalizados'
+
+    id_perfil = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    codigo_perfil = db.Column(db.String(50), unique=True, nullable=False) # Ej: 'director_medico'
+    nombre_perfil = db.Column(db.String(100), nullable=False) # Ej: 'Director Médico'
+    descripcion = db.Column(db.Text, nullable=True)
+    modulos_asociados = db.Column(db.JSON, nullable=True) # Módulos a los que tendrá acceso
+    estado = db.Column(db.Boolean, default=True)
+
+    def __repr__(self):
+        return f"<PerfilPersonalizado {self.nombre_perfil} ({self.codigo_perfil})>"
+
+
+class ClientePerfilAsignado(db.Model):
+    """Control de cuáles perfiles personalizados ha autorizado el Superadmin para cada cliente específico"""
+    __tablename__ = 'uni_clientes_perfiles_asignados'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_cliente = db.Column(db.Integer, db.ForeignKey('uni_clientes.id_cliente', ondelete='CASCADE'), nullable=False)
+    codigo_perfil = db.Column(db.String(50), nullable=False) # Código del perfil autorizado
+    estado = db.Column(db.Boolean, default=True)
+
+    __table_args__ = (
+        db.UniqueConstraint('id_cliente', 'codigo_perfil', name='unique_cliente_perfil_asignado'),
+    )
+
+    def __repr__(self):
+        return f"<ClientePerfilAsignado Cliente:{self.id_cliente} Perfil:{self.codigo_perfil}>"
