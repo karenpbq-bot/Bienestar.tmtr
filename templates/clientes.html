@@ -200,6 +200,30 @@
                             </div>
                         </div>
 
+                        <!-- NUEVA SECCIÓN: Asignación de Perfiles en Creación -->
+                        <hr class="my-2">
+                        <h6 class="fw-bold text-primary mb-0">Perfiles Personalizados Autorizados</h6>
+                        <div class="col-md-12">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="row g-2">
+                                    {% if perfiles_disponibles %}
+                                        {% for perfil in perfiles_disponibles %}
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="perfiles_asignados" value="{{ perfil.codigo_perfil }}" id="perf_nuevo_{{ perfil.codigo_perfil }}">
+                                                <label class="form-check-label small fw-semibold text-dark" for="perf_nuevo_{{ perfil.codigo_perfil }}">
+                                                    {{ perfil.nombre_perfil }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="col-12 text-muted small">No hay perfiles globales creados. Créalos primero en "Gestión de Perfiles".</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
                         <hr class="my-2">
                         <h6 class="fw-bold text-primary mb-0">Detalles del Plan y Suscripción</h6>
                         <div class="col-md-6">
@@ -281,6 +305,30 @@
                                         </div>
                                     </div>
                                     {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NUEVA SECCIÓN: Asignación de Perfiles en Edición -->
+                        <hr class="my-2">
+                        <h6 class="fw-bold text-primary mb-0">Perfiles Personalizados Autorizados</h6>
+                        <div class="col-md-12">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="row g-2">
+                                    {% if perfiles_disponibles %}
+                                        {% for perfil in perfiles_disponibles %}
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="perfiles_asignados" value="{{ perfil.codigo_perfil }}" id="perf_{{ c.id_cliente }}_{{ perfil.codigo_perfil }}" {% if perfil.codigo_perfil in c.perfiles_activos %}checked{% endif %}>
+                                                <label class="form-check-label small fw-semibold text-dark" for="perf_{{ c.id_cliente }}_{{ perfil.codigo_perfil }}">
+                                                    {{ perfil.nombre_perfil }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="col-12 text-muted small">No hay perfiles globales creados.</div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
