@@ -54,6 +54,7 @@ def gestionar_clientes():
                 nuevo_cliente = ClienteEmpresa(
                     nombre_marca=nombre_marca,
                     nombre_empresa=nombre_empresa if nombre_empresa else None,
+                    representante='Administrador General', # Soluciona el NotNullViolation
                     ruc=ruc if ruc else None,
                     direccion=direccion if direccion else None,
                     telefono=telefono if telefono else None,
@@ -91,7 +92,6 @@ def gestionar_clientes():
     modulos_disponibles = ModuloSistema.query.all()
     perfiles_disponibles = PerfilPersonalizado.query.all()
     
-    # Mapear los módulos y perfiles activos de cada cliente para pasarlos a la vista
     for c in clientes:
         c.modulos_activos = [m.codigo_modulo for m in ClienteModulo.query.filter_by(id_cliente=c.id_cliente).all()]
         c.perfiles_activos = [p.codigo_perfil for p in ClientePerfilAsignado.query.filter_by(id_cliente=c.id_cliente, estado=True).all()]
