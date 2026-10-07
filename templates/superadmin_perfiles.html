@@ -79,19 +79,16 @@
                         </div>
                         <div class="col-md-12">
                             <label class="form-label fw-semibold small">Módulos del Sistema Asociados</label>
-                            <div class="p-3 bg-light rounded-3 border">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="modulos" value="psicologia" id="mod_psi">
-                                    <label class="form-check-label small text-dark" for="mod_psi">Psicología</label>
+                            <div class="p-3 bg-light rounded-3 border" style="max-height: 220px; overflow-y: auto;">
+                                {% for mod in modulos_disponibles %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="modulos" value="{{ mod.codigo_modulo }}" id="mod_{{ mod.codigo_modulo }}">
+                                    <label class="form-check-label small text-dark" for="mod_{{ mod.codigo_modulo }}">
+                                        <strong>{{ mod.nombre_modulo }}</strong>
+                                        <br><span class="text-muted" style="font-size: 11px;">{{ mod.descripcion }}</span>
+                                    </label>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="modulos" value="odontologia" id="mod_odon">
-                                    <label class="form-check-label small text-dark" for="mod_odon">Odontología</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="modulos" value="agenda" id="mod_agenda">
-                                    <label class="form-check-label small text-dark" for="mod_agenda">Agenda y Citas</label>
-                                </div>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
