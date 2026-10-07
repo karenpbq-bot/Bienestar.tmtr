@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from models import db, PerfilPersonalizado, ClientePerfilAsignado, ClienteEmpresa, ModuloSistema # <-- Añade ModuloSistema aquí
+from models import db, PerfilPersonalizado, ClientePerfilAsignado, ClienteEmpresa, ModuloSistema
 from functools import wraps
 
 perfiles_superadmin_bp = Blueprint('perfiles_superadmin', __name__, template_folder='templates')
@@ -55,4 +55,6 @@ def gestionar_perfiles():
         return redirect(url_for('perfiles_superadmin.gestionar_perfiles'))
 
     perfiles = PerfilPersonalizado.query.all()
-    return render_template('superadmin_perfiles.html', perfiles=perfiles)
+    modulos_disponibles = ModuloSistema.query.all() # Carga los módulos granulares
+    
+    return render_template('superadmin_perfiles.html', perfiles=perfiles, modulos_disponibles=modulos_disponibles)
